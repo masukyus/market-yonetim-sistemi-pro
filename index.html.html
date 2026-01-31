@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Profesyonel market raf ömrü yönetim sistemi">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Market Pro">
+    <link rel="manifest" href="manifest_pro.json">
+    <title>Market Yönetim Sistemi Pro</title>
+    <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .header h1 { font-size: 1.8em; margin-bottom: 5px; }
+        .header p { opacity: 0.9; font-size: 0.9em; }
+        
+        .version-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .content { padding: 20px; }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-card.critical { border-color: #e74c3c; }
+        .stat-card.warning { border-color: #f39c12; }
+        .stat-card.good { border-color: #27ae60; }
+        .stat-card.total { border-color: #3498db; }
+        .stat-card.revenue { border-color: #9b59b6; }
+        
+        .stat-number { font-size: 2.5em; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { color: #666; font-size: 0.9em; }
+        
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            flex: 1;
+            min-width: 150px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .action-btn.excel { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
+        .action-btn.report { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .action-btn.settings { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group { display: flex; flex-direction: column; }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .camera-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .camera-btn {
+            flex: 1;
+            background: #27ae60;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            justify-content: center;
+        }
+        
+        .camera-btn:hover { background: #229954; }
+        .camera-btn.secondary { background: #3498db; }
+        .camera-btn.secondary:hover { background: #2980b9; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .search-filter-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-chip {
+            padding: 8px 15px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .filter-chip.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .sort-select {
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        
+        .product-grid { display: grid; gap: 15px; }
+        
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            transition: all 0.3s;
+        }
+        
+        .product-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+        }
+        
+        .product-card.critical { border-color: #e74c3c; background: linear-gradient(to right, #fff5f5 0%, white 100%); }
+        .product-card.warning { border-color: #f39c12; background: linear-gradient(to right, #fffbf0 0%, white 100%); }
+        .product-card.good { border-color: #27ae60; background: linear-gradient(to right, #f0fff4 0%, white 100%); }
+        
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .product-info { flex: 1; }
+        .product-name { font-size: 1.2em; font-weight: bold; color: #333; margin-bottom: 5px; }
+        
+        .product-category {
+            font-size: 0.85em;
+            color: #666;
+            background: #f0f0f0;
+            padding: 3px 10px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        
+        .product-badges {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-end;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .status-critical {
+            background: #e74c3c;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .status-warning { background: #f39c12; color: white; }
+        .status-good { background: #27ae60; color: white; }
+        
+        .priority-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        
+        .priority-high { background: #ff6b6b; color: white; }
+        .priority-medium { background: #ffd93d; color: #333; }
+        .priority-low { background: #6bcf7f; color: white; }
+        
+        .product-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.02);
+            border-radius: 8px;
+        }
+        
+        .detail-item { display: flex; flex-direction: column; }
+        .detail-label { font-size: 0.8em; color: #666; margin-bottom: 3px; }
+        .detail-value { font-weight: bold; color: #333; font-size: 0.95em; }
+        
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            flex: 1;
+        }
+        
+        .btn-discount { background: #f39c12; color: white; }
+        .btn-discount:hover { background: #e67e22; }
+        .btn-delete { background: #e74c3c; color: white; }
+        .btn-delete:hover { background: #c0392b; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 { color: #667eea; margin: 0; }
+        
+        .close-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+        
+        #video, #barcodeVideo {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #000;
+            max-height: 400px;
+        }
+        
+        #canvas, #barcodeCanvas { display: none; }
+        
+        .scan-result {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        .scan-result.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .hint {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.85em;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon { font-size: 4em; margin-bottom: 15px; }
+        
+        .category-rules {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .rule-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .alert-banner {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .alert-banner.critical {
+            background: #f8d7da;
+            border-color: #e74c3c;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard { grid-template-columns: repeat(2, 1fr); }
+            .stat-number { font-size: 2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Market Yönetim Pro</h1>
+            <p>Akıllı SKT Yönetimi & Fire Önleme</p>
+            <span class="version-badge">📱 PWA v2.0</span>
+        </div>
+
+        <div class="content">
+            <!-- PWA Kurulum Bildirimi -->
+            <div id="installPrompt" style="display:none;background:#fff3cd;border:2px solid #ffc107;padding:15px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;gap:15px;">
+                <span>📱 Bu uygulamayı telefonunuza kurun!</span>
+                <button onclick="installPWA()" style="background:#667eea;color:white;padding:8px 15px;border:none;border-radius:5px;cursor:pointer;">Kur</button>
+            </div>
+            
+            <div id="alertBanner" style="display:none;"></div>
+            
+            <div class="dashboard" id="dashboard"></div>
+            
+            <div class="action-bar">
+                <button class="action-btn excel" onclick="exportToExcel()">📊 Excel İndir</button>
+                <button class="action-btn settings" onclick="openSettings()">⚙️ Kategori Ayarları</button>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('products', event)">📦 Ürünler</button>
+                <button class="tab" onclick="switchTab('add', event)">➕ Ekle</button>
+                <button class="tab" onclick="switchTab('alerts', event)">🔔 Uyarılar</button>
+            </div>
+            
+            <div id="productsTab" class="tab-content active">
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Ara..." onkeyup="searchProducts()">
+                        <select class="sort-select" id="sortSelect" onchange="sortProducts()">
+                            <option value="expiry">SKT Tarihi</option>
+                            <option value="name">İsim</option>
+                            <option value="category">Kategori</option>
+                            <option value="priority">Öncelik</option>
+                        </select>
+                    </div>
+                    <div class="filter-chips">
+                        <button class="filter-chip active" onclick="filterByStatus('all', event)">Tümü</button>
+                        <button class="filter-chip" onclick="filterByStatus('critical', event)">🔴 Kritik</button>
+                        <button class="filter-chip" onclick="filterByStatus('warning', event)">🟡 Dikkat</button>
+                        <button class="filter-chip" onclick="filterByStatus('good', event)">🟢 İyi</button>
+                    </div>
+                </div>
+                <div class="product-grid" id="productsList"></div>
+            </div>
+            
+            <div id="addTab" class="tab-content">
+                <div class="form-section">
+                    <h2>➕ Yeni Ürün</h2>
+                    <div class="camera-section">
+                        <button class="camera-btn" onclick="openBarcodeScanner()">📷 Barkod</button>
+                        <button class="camera-btn secondary" onclick="openCamera()">📸 Fotoğraf</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ürün Adı *</label>
+                            <input type="text" id="productName" placeholder="Ürün adı">
+                        </div>
+                        <div class="form-group">
+                            <label>Kategori *</label>
+                            <select id="category" onchange="updateCategoryInfo()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>SKT *</label>
+                            <input type="date" id="expiryDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Miktar</label>
+                            <input type="number" id="quantity" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Fiyat (₺)</label>
+                            <input type="number" id="unitPrice" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Tedarikçi</label>
+                            <input type="text" id="supplier" placeholder="Tedarikçi">
+                        </div>
+                    </div>
+                    <div id="categoryInfo" class="category-rules" style="display:none;"></div>
+                    <button class="btn-primary" onclick="addProduct()">Ürün Ekle</button>
+                </div>
+            </div>
+            
+            <div id="alertsTab" class="tab-content">
+                <div id="alertsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="barcodeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📷 Barkod Tarama</h2>
+                <button class="close-btn" onclick="closeBarcodeScanner()">✕</button>
+            </div>
+            <video id="barcodeVideo" autoplay playsinline></video>
+            <canvas id="barcodeCanvas"></canvas>
+            <div id="barcodeResult"></div>
+            <div class="hint">💡 Barkodu kamera önüne tutun</div>
+        </div>
+    </div>
+
+    <div id="cameraModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📸 Fotoğraf</h2>
+                <button class="close-btn" onclick="closeCamera()">✕</button>
+            </div>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <button class="btn-primary" onclick="captureImage()" style="margin-top:15px;">Çek</button>
+            <div id="cameraResult"></div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Kategori Ayarları</h2>
+                <button class="close-btn" onclick="closeSettings()">✕</button>
+            </div>
+            <div id="categorySettings"></div>
+        </div>
+    </div>
+
+    <div id="discountModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 İndirim</h2>
+                <button class="close-btn" onclick="closeDiscountModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <label>İndirim %</label>
+                <input type="number" id="discountRate" min="1" max="90" value="30">
+            </div>
+            <button class="btn-primary" onclick="applyDiscount()">Uygula</button>
+        </div>
+    </div>
+
+    <script>
+        // PWA Değişkenleri
+        let deferredPrompt = null;
+        
+        // PWA Kurulum
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'flex';
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('PWA kuruldu');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').style.display = 'none';
+                });
+            }
+        }
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw_pro.js')
+                .then(() => console.log('Service Worker kayıtlı'))
+                .catch(() => console.log('Service Worker kayıt başarısız'));
+        }
+
+        // Global değişkenler
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let categories = JSON.parse(localStorage.getItem('categories')) || {};
+        let currentFilter = 'all';
+        let currentSort = 'expiry';
+        let currentDiscountId = null;
+        let stream = null;
+        let codeReader = null;
+        let barcodeStream = null;
+
+        const defaultCategories = {
+            'Süt Ürünleri': { critical: 3, warning: 7, icon: '🥛' },
+            'Et & Tavuk': { critical: 2, warning: 5, icon: '🍖' },
+            'Şarküteri': { critical: 5, warning: 15, icon: '🥓' },
+            'Fırın': { critical: 1, warning: 3, icon: '🍞' },
+            'Sebze & Meyve': { critical: 3, warning: 7, icon: '🥬' },
+            'Donuk Gıda': { critical: 30, warning: 60, icon: '❄️' },
+            'Hazır Yemek': { critical: 2, warning: 5, icon: '🍱' },
+            'İçecek': { critical: 7, warning: 30, icon: '🥤' },
+            'Diğer': { critical: 5, warning: 15, icon: '📦' }
+        };
+
+        if (Object.keys(categories).length === 0) {
+            categories = defaultCategories;
+            saveCategories();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            renderDashboard();
+            renderProducts();
+            updateAlertBanner();
+            document.getElementById('expiryDate').min = new Date().toISOString().split('T')[0];
+        });
+
+        function loadCategories() {
+            const select = document.getElementById('category');
+            select.innerHTML = Object.keys(categories).map(cat => 
+                `<option value="${cat}">${categories[cat].icon} ${cat}</option>`
+            ).join('');
+        }
+
+        function updateCategoryInfo() {
+            const category = document.getElementById('category').value;
+            const info = categories[category];
+            const infoDiv = document.getElementById('categoryInfo');
+            
+            if (info) {
+                infoDiv.style.display = 'block';
+                infoDiv.innerHTML = `
+                    <h4>${info.icon} ${category} - SKT Kuralları</h4>
+                    <div class="rule-item"><strong>🔴 Kritik:</strong> ${info.critical} gün ve altı</div>
+                    <div class="rule-item"><strong>🟡 Dikkat:</strong> ${info.critical + 1} - ${info.warning} gün</div>
+                    <div class="rule-item"><strong>🟢 İyi:</strong> ${info.warning + 1}+ gün</div>
+                `;
+            }
+        }
+
+        function getDaysRemaining(expiryDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expiry = new Date(expiryDate);
+            expiry.setHours(0, 0, 0, 0);
+            return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function getProductStatus(product) {
+            const days = getDaysRemaining(product.expiryDate);
+            const categoryRule = categories[product.category] || categories['Diğer'];
+            
+            if (days < 0) return { status: 'critical', text: 'TARİHİ GEÇMİŞ!' };
+            if (days === 0) return { status: 'critical', text: 'BUGÜN BİTİYOR!' };
+            if (days <= categoryRule.critical) return { status: 'critical', text: `${days} GÜN` };
+            if (days <= categoryRule.warning) return { status: 'warning', text: `${days} gün` };
+            return { status: 'good', text: `${days} gün` };
+        }
+
+        function getPriority(product) {
+            const statusInfo = getProductStatus(product);
+            if (statusInfo.status === 'critical') return { level: 'high', text: 'YÜKSEK' };
+            if (statusInfo.status === 'warning') return { level: 'medium', text: 'ORTA' };
+            return { level: 'low', text: 'DÜŞÜK' };
+        }
+
+        function addProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const category = document.getElementById('category').value;
+            const expiryDate = document.getElementById('expiryDate').value;
+            const quantity = document.getElementById('quantity').value;
+            const unitPrice = document.getElementById('unitPrice').value || 0;
+            const supplier = document.getElementById('supplier').value.trim();
+
+            if (!name || !expiryDate) {
+                alert('⚠️ Ürün adı ve SKT zorunlu!');
+                return;
+            }
+
+            products.push({
+                id: Date.now(),
+                name, category, expiryDate,
+                quantity: parseInt(quantity),
+                unitPrice: parseFloat(unitPrice),
+                supplier,
+                addedDate: new Date().toISOString(),
+                discount: 0
+            });
+
+            saveProducts();
+            renderDashboard();
+            renderProducts();
+            updateAlertBanner();
+            
+            document.getElementById('productName').value = '';
+            document.getElementById('expiryDate').value = '';
+            document.getElementById('quantity').value = '1';
+            document.getElementById('unitPrice').value = '';
+            document.getElementById('supplier').value = '';
+            
+            alert('✅ Eklendi!');
+            switchTab('products', null);
+        }
+
+        function renderDashboard() {
+            let critical = 0, warning = 0, good = 0, totalValue = 0, criticalValue = 0;
+
+            products.forEach(p => {
+                const status = getProductStatus(p).status;
+                const value = p.quantity * p.unitPrice;
+                totalValue += value;
+                
+                if (status === 'critical') { critical++; criticalValue += value; }
+                else if (status === 'warning') warning++;
+                else good++;
+            });
+
+            document.getElementById('dashboard').innerHTML = `
+                <div class="stat-card critical">
+                    <div class="stat-number" style="color:#e74c3c;">${critical}</div>
+                    <div class="stat-label">🔴 Kritik</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" style="color:#f39c12;">${warning}</div>
+                    <div class="stat-label">🟡 Dikkat</div>
+                </div>
+                <div class="stat-card good">
+                    <div class="stat-number" style="color:#27ae60;">${good}</div>
+                    <div class="stat-label">🟢 İyi</div>
+                </div>
+                <div class="stat-card total">
+                    <div class="stat-number" style="color:#3498db;">${products.length}</div>
+                    <div class="stat-label">📦 Toplam</div>
+                </div>
+                <div class="stat-card revenue">
+                    <div class="stat-number" style="color:#9b59b6;font-size:1.8em;">${totalValue.toFixed(0)}₺</div>
+                    <div class="stat-label">💰 Değer</div>
+                </div>
+            `;
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('productsList');
+            let filtered = filterProducts();
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📦</div><h3>Ürün yok</h3></div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => {
+                const status = getProductStatus(p);
+                const priority = getPriority(p);
+                const total = p.quantity * p.unitPrice;
+
+                return `
+                    <div class="product-card ${status.status}">
+                        <div class="product-header">
+                            <div class="product-info">
+                                <div class="product-name">${p.name}</div>
+                                <span class="product-category">${categories[p.category]?.icon} ${p.category}</span>
+                            </div>
+                            <div class="product-badges">
+                                <span class="status-badge status-${status.status}">${status.text}</span>
+                                <span class="priority-badge priority-${priority.level}">${priority.text}</span>
+                                ${p.discount > 0 ? `<span class="status-badge" style="background:#e67e22;">%${p.discount}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="product-details">
+                            <div class="detail-item">
+                                <span class="detail-label">SKT</span>
+                                <span class="detail-value">${new Date(p.expiryDate).toLocaleDateString('tr-TR')}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Miktar</span>
+                                <span class="detail-value">${p.quantity}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Fiyat</span>
+                                <span class="detail-value">${p.unitPrice.toFixed(2)}₺</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Toplam</span>
+                                <span class="detail-value">${total.toFixed(2)}₺</span>
+                            </div>
+                        </div>
+                        <div class="product-actions">
+                            ${status.status !== 'good' ? `<button class="btn-small btn-discount" onclick="openDiscountModal(${p.id})">💰 İndirim</button>` : ''}
+                            <button class="btn-small btn-delete" onclick="deleteProduct(${p.id})">🗑️ Sil</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterProducts() {
+            let filtered = products;
+            
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(p => getProductStatus(p).status === currentFilter);
+            }
+            
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    p.category.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            switch(currentSort) {
+                case 'expiry':
+                    filtered.sort((a, b) => getDaysRemaining(a.expiryDate) - getDaysRemaining(b.expiryDate));
+                    break;
+                case 'name':
+                    filtered.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'category':
+                    filtered.sort((a, b) => a.category.localeCompare(b.category));
+                    break;
+                case 'priority':
+                    const order = { high: 0, medium: 1, low: 2 };
+                    filtered.sort((a, b) => order[getPriority(a).level] - order[getPriority(b).level]);
+                    break;
+            }
+            
+            return filtered;
+        }
+
+        function filterByStatus(status, event) {
+            currentFilter = status;
+            if (event) {
+                document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+            renderProducts();
+        }
+
+        function searchProducts() { renderProducts(); }
+        function sortProducts() {
+            currentSort = document.getElementById('sortSelect').value;
+            renderProducts();
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Silmek istediğinizden emin misiniz?')) {
+                products = products.filter(p => p.id !== id);
+                saveProducts();
+                renderDashboard();
+                renderProducts();
+                updateAlertBanner();
+            }
+        }
+
+        function openDiscountModal(id) {
+            currentDiscountId = id;
+            document.getElementById('discountModal').classList.add('active');
+        }
+
+        function closeDiscountModal() {
+            document.getElementById('discountModal').classList.remove('active');
+        }
+
+        function applyDiscount() {
+            const rate = parseInt(document.getElementById('discountRate').value);
+            const product = products.find(p => p.id === currentDiscountId);
+            if (product) {
+                product.discount = rate;
+                saveProducts();
+                renderProducts();
+                closeDiscountModal();
+                alert(`✅ %${rate} uygulandı!`);
+            }
+        }
+
+        function updateAlertBanner() {
+            const banner = document.getElementById('alertBanner');
+            const critical = products.filter(p => getProductStatus(p).status === 'critical');
+            
+            if (critical.length > 0) {
+                banner.style.display = 'flex';
+                banner.className = 'alert-banner critical';
+                banner.innerHTML = `<div style="flex:1;"><strong>⚠️ ACİL!</strong><br>${critical.length} kritik ürün var!</div>`;
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        function switchTab(tab, event) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (event) event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+            
+            if (tab === 'alerts') renderAlerts();
+        }
+
+        function renderAlerts() {
+            const container = document.getElementById('alertsList');
+            const alerts = products
+                .filter(p => getProductStatus(p).status === 'critical')
+                .sort((a, b) => getDaysRemaining(a.expiryDate) - getDaysRemaining(b.expiryDate));
+
+            if (alerts.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✅</div><h3>Kritik ürün yok</h3></div>`;
+                return;
+            }
+
+            container.innerHTML = alerts.map(p => {
+                const status = getProductStatus(p);
+                const days = getDaysRemaining(p.expiryDate);
+                let action = days < 0 ? '❌ Raftan kaldır' : days === 0 ? '⚡ Bugün son!' : days <= 2 ? '💰 %50-70 indirim' : '💡 %30-40 indirim';
+
+                return `
+                    <div class="product-card critical">
+                        <div class="product-header">
+                            <div class="product-info">
+                                <div class="product-name">${p.name}</div>
+                                <span class="product-category">${categories[p.category]?.icon} ${p.category}</span>
+                            </div>
+                            <span class="status-badge status-critical">${status.text}</span>
+                        </div>
+                        <div style="background:#fff3cd;padding:15px;border-radius:8px;margin:15px 0;">
+                            <strong>🎯 ÖNERİ:</strong> ${action}
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn-small btn-discount" onclick="openDiscountModal(${p.id})">💰 İndirim</button>
+                            <button class="btn-small btn-delete" onclick="deleteProduct(${p.id})">🗑️ Kaldır</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openSettings() {
+            const modal = document.getElementById('settingsModal');
+            const container = document.getElementById('categorySettings');
+            
+            container.innerHTML = `
+                <h3>Kategori Kuralları</h3>
+                ${Object.keys(categories).map(cat => `
+                    <div class="form-section">
+                        <h4>${categories[cat].icon} ${cat}</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Kritik (gün)</label>
+                                <input type="number" value="${categories[cat].critical}" 
+                                       onchange="updateCategoryRule('${cat}', 'critical', this.value)" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Dikkat (gün)</label>
+                                <input type="number" value="${categories[cat].warning}" 
+                                       onchange="updateCategoryRule('${cat}', 'warning', this.value)" min="1">
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+                <button class="btn-primary" onclick="closeSettings()">Kaydet</button>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+            renderProducts();
+            renderDashboard();
+        }
+
+        function updateCategoryRule(category, type, value) {
+            categories[category][type] = parseInt(value);
+            saveCategories();
+        }
+
+        function exportToExcel() {
+            if (products.length === 0) {
+                alert('Ürün yok!');
+                return;
+            }
+
+            const data = products.map(p => ({
+                'Ürün': p.name,
+                'Kategori': p.category,
+                'SKT': new Date(p.expiryDate).toLocaleDateString('tr-TR'),
+                'Kalan Gün': getDaysRemaining(p.expiryDate),
+                'Durum': getProductStatus(p).text,
+                'Öncelik': getPriority(p).text,
+                'Miktar': p.quantity,
+                'Fiyat': p.unitPrice,
+                'Toplam': (p.quantity * p.unitPrice).toFixed(2),
+                'İndirim %': p.discount || 0
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Ürünler');
+            XLSX.writeFile(wb, `market_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        async function openBarcodeScanner() {
+            const modal = document.getElementById('barcodeModal');
+            const video = document.getElementById('barcodeVideo');
+            const resultDiv = document.getElementById('barcodeResult');
+            
+            modal.classList.add('active');
+            resultDiv.innerHTML = '';
+
+            try {
+                barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = barcodeStream;
+                codeReader = new ZXing.BrowserMultiFormatReader();
+                
+                codeReader.decodeFromVideoDevice(null, 'barcodeVideo', (result, err) => {
+                    if (result) {
+                        resultDiv.innerHTML = `<div class="scan-result">✅ ${result.text}</div>`;
+                        document.getElementById('productName').value = `Ürün-${result.text}`;
+                        setTimeout(() => closeBarcodeScanner(), 1500);
+                    }
+                });
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="scan-result error">❌ Kamera erişimi reddedildi</div>`;
+            }
+        }
+
+        function closeBarcodeScanner() {
+            document.getElementById('barcodeModal').classList.remove('active');
+            if (codeReader) codeReader.reset();
+            if (barcodeStream) {
+                barcodeStream.getTracks().forEach(track => track.stop());
+                barcodeStream = null;
+            }
+        }
+
+        async function openCamera() {
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('video');
+            
+            modal.classList.add('active');
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = stream;
+            } catch (error) {
+                alert('Kamera açılamadı');
+            }
+        }
+
+        function closeCamera() {
+            document.getElementById('cameraModal').classList.remove('active');
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        function captureImage() {
+            const name = prompt('Ürün adı:');
+            if (name) {
+                document.getElementById('productName').value = name;
+                closeCamera();
+            }
+        }
+
+        function saveProducts() { localStorage.setItem('products', JSON.stringify(products)); }
+        function saveCategories() { localStorage.setItem('categories', JSON.stringify(categories)); }
+    </script>
+</body>
+</html>
