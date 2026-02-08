@@ -11,7 +11,7 @@
  */
 
 // CONFIGURATION
-const CACHE_VERSION = 'market-stok-v1.0.0';
+const CACHE_VERSION = 'market-stok-v1.0.1';
 const CACHE_NAME = `${CACHE_VERSION}`;
 
 const STATIC_CACHE = `${CACHE_NAME}-static`;
@@ -210,8 +210,8 @@ self.addEventListener('push', (event) => {
     
     const options = {
         body: event.data ? event.data.text() : 'Yeni bildirim',
-        icon: './icons/icon-192.png',
-        badge: './icons/badge-72.png',
+        icon: './icons/icon-192.svg',
+        badge: './icons/badge-72.svg',
         vibrate: [200, 100, 200]
     };
     
