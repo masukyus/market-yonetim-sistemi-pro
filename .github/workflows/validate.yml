@@ -1,0 +1,72 @@
+name: PWA Validation
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check manifest.json
+      run: |
+        if [ ! -f manifest.json ]; then
+          echo "❌ manifest.json not found!"
+          exit 1
+        fi
+        echo "✅ manifest.json exists"
+    
+    - name: Check Service Worker
+      run: |
+        if [ ! -f sw.js ]; then
+          echo "❌ sw.js not found!"
+          exit 1
+        fi
+        echo "✅ sw.js exists"
+    
+    - name: Check HTML files
+      run: |
+        if [ ! -f index.html ] && [ ! -f market_yonetim_pwa.html ]; then
+          echo "❌ No main HTML file found!"
+          exit 1
+        fi
+        echo "✅ HTML files exist"
+    
+    - name: Validate JSON
+      run: |
+        node -e "JSON.parse(require('fs').readFileSync('manifest.json', 'utf8'))" || exit 1
+        echo "✅ manifest.json is valid"
+    
+    - name: Check CSS syntax
+      run: |
+        echo "✅ CSS validation skipped (manual review recommended)"
+    
+    - name: Check for required files
+      run: |
+        packages=("README.md" "LICENSE" ".gitignore" "package.json")
+        for file in "${packages[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Required file missing: $file"
+            exit 1
+          fi
+        done
+        echo "✅ All required files present"
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run Lighthouse CI
+      uses: treosh/lighthouse-ci-action@v10
+      with:
+        uploadArtifacts: true
+        temporaryPublicStorage: true
+      continue-on-error: true
