@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1334" viewBox="0 0 750 1334">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5f3ff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+  </defs>
+  <rect width="750" height="1334" fill="url(#bg)"/>
+  <rect x="40" y="80" width="670" height="1174" rx="40" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="80" y="160" font-size="36" fill="#111827" font-family="Segoe UI, Arial, sans-serif">Ürün Listesi</text>
+  <rect x="80" y="220" width="590" height="140" rx="20" fill="#fef2f2"/>
+  <rect x="80" y="390" width="590" height="140" rx="20" fill="#fffbeb"/>
+  <rect x="80" y="560" width="590" height="140" rx="20" fill="#ecfeff"/>
+  <rect x="80" y="730" width="590" height="140" rx="20" fill="#f0fdf4"/>
+  <text x="100" y="310" font-size="22" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif">SKT Durum Kartları</text>
+</svg>

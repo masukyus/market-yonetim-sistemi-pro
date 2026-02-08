@@ -11,7 +11,7 @@
  */
 
 // CONFIGURATION
-const CACHE_VERSION = 'market-stok-v1.0.1';
+const CACHE_VERSION = 'market-stok-v1.0.2';
 const CACHE_NAME = `${CACHE_VERSION}`;
 
 const STATIC_CACHE = `${CACHE_NAME}-static`;
@@ -21,7 +21,15 @@ const IMAGE_CACHE = `${CACHE_NAME}-images`;
 const STATIC_ASSETS = [
     './',
     './index.html',
-    './manifest.json'
+    './market_yonetim_pwa.html',
+    './manifest.json',
+    './manifest-game.json',
+    './icons/icon-192.svg',
+    './icons/icon-512.svg',
+    './icons/badge-72.svg',
+    './screenshots/dashboard.svg',
+    './screenshots/products.svg',
+    './screenshots/leaderboard.svg'
 ];
 
 const CACHE_LIMITS = {

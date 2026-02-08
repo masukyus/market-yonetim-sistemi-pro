@@ -1,0 +1,91 @@
+{
+  "name": "SKT Kontrol - Gamified",
+  "short_name": "SKT Game",
+  "description": "Oyunlaştırılmış SKT kontrol ve stok yönetim sistemi. Puan kazan, seviye atla, rozetler topla!",
+  "version": "1.0.0",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "theme_color": "#9333ea",
+  "background_color": "#1e293b",
+  "lang": "tr",
+  "dir": "ltr",
+
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Dashboard - Seviye ve Görevler"
+    },
+    {
+      "src": "screenshots/products.svg",
+      "sizes": "750x1334",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Ürün Listesi - SKT Kontrolü"
+    },
+    {
+      "src": "screenshots/leaderboard.svg",
+      "sizes": "750x1334",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Lider Tablosu - Sıralama"
+    }
+  ],
+
+  "categories": [
+    "business",
+    "productivity",
+    "games",
+    "utilities"
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Hızlı Tarama",
+      "short_name": "Tara",
+      "description": "Hızlı ürün tarama",
+      "url": "./?action=quick-scan"
+    },
+    {
+      "name": "Görevler",
+      "short_name": "Görevler",
+      "description": "Günlük görevleri görüntüle",
+      "url": "./?view=dashboard"
+    },
+    {
+      "name": "Lider Tablosu",
+      "short_name": "Liderler",
+      "description": "Lider tablosunu görüntüle",
+      "url": "./?view=leaderboard"
+    },
+    {
+      "name": "Rozetlerim",
+      "short_name": "Rozetler",
+      "description": "Kazanılan rozetleri görüntüle",
+      "url": "./?view=badges"
+    }
+  ],
+
+  "related_applications": [],
+  "prefer_related_applications": false
+}

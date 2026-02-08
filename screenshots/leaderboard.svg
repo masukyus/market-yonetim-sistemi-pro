@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="1334" viewBox="0 0 750 1334">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fefce8"/>
+      <stop offset="1" stop-color="#fde2f3"/>
+    </linearGradient>
+  </defs>
+  <rect width="750" height="1334" fill="url(#bg)"/>
+  <rect x="40" y="80" width="670" height="1174" rx="40" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="80" y="160" font-size="36" fill="#111827" font-family="Segoe UI, Arial, sans-serif">Lider Tablosu</text>
+  <rect x="80" y="220" width="590" height="110" rx="18" fill="#fef3c7"/>
+  <rect x="80" y="360" width="590" height="110" rx="18" fill="#e0f2fe"/>
+  <rect x="80" y="500" width="590" height="110" rx="18" fill="#f3e8ff"/>
+  <text x="100" y="290" font-size="22" fill="#6b7280" font-family="Segoe UI, Arial, sans-serif">Haftalık Puanlar</text>
+</svg>
