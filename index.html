@@ -122,7 +122,13 @@
 </head>
 <body class="bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
     <!-- App Container -->
-    <div id="app"></div>
+    <div id="app">
+        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; gap: 20px; background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);">
+            <div style="font-size: 48px;">⏳</div>
+            <h1 style="color: white; font-size: 24px; margin: 0;">Uygulama yükleniyor...</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 0;">Lütfen bekleyiniz...</p>
+        </div>
+    </div>
     
     <!-- Toast Container -->
     <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-3"></div>
@@ -131,6 +137,9 @@
     <div id="confettiContainer"></div>
 
     <script>
+        // Debug logging
+        console.log('[APP] Market Yönetim Uygulaması başlatılıyor...');
+        
         /* ============================================
            STATE MANAGEMENT - Gamified Store
         ============================================ */
@@ -1016,6 +1025,8 @@
            MAIN RENDER
         ============================================ */
         function render() {
+            console.log('[APP] render() çağrıldı, currentView:', store.currentView);
+            
             const app = document.getElementById('app');
             
             let content = '';
@@ -1044,18 +1055,26 @@
         /* ============================================
            SERVICE WORKER REGISTRATION
         ============================================ */
+        console.log('[APP] Service Worker registration başlanıyor...');
+        
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                console.log('[APP] Load event tetiklendi, SW register ediliyor...');
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('SW registered:', reg.scope))
-                    .catch(err => console.log('SW registration failed:', err));
+                    .then(reg => console.log('[APP] SW başarıyla register edildi:', reg.scope))
+                    .catch(err => console.error('[APP] SW registration hatası:', err));
             });
+        } else {
+            console.warn('[APP] Service Worker tarayıcıda desteklenmiyor');
         }
 
         /* ============================================
            INITIALIZATION
         ============================================ */
+        console.log('[APP] Initialization starting...');
+        
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('[APP] DOMContentLoaded tetiklendi');
             render();
         });
     </script>
