@@ -19,9 +19,9 @@ const DYNAMIC_CACHE = `${CACHE_NAME}-dynamic`;
 const IMAGE_CACHE = `${CACHE_NAME}-images`;
 
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/manifest.json'
+    './',
+    './index.html',
+    './manifest.json'
 ];
 
 const CACHE_LIMITS = {
@@ -136,7 +136,7 @@ async function cacheFirstStrategy(request, cacheName) {
         console.error('[SW] Cache First Strategy failed:', error);
         
         if (request.destination === 'document') {
-            return caches.match('/index.html');
+            return caches.match('./index.html');
         }
         
         throw error;
@@ -210,8 +210,8 @@ self.addEventListener('push', (event) => {
     
     const options = {
         body: event.data ? event.data.text() : 'Yeni bildirim',
-        icon: '/icons/icon-192.png',
-        badge: '/icons/badge-72.png',
+        icon: './icons/icon-192.png',
+        badge: './icons/badge-72.png',
         vibrate: [200, 100, 200]
     };
     
@@ -223,7 +223,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     console.log('[SW] Notification clicked:', event.action);
     event.notification.close();
-    event.waitUntil(clients.openWindow('/'));
+    event.waitUntil(clients.openWindow('./'));
 });
 
 // MESSAGE HANDLER

@@ -3,8 +3,8 @@
   "short_name": "Stok App",
   "description": "Profesyonel PWA tabanlı market stok yönetim sistemi. Barkod okuma, offline çalışma, kategori yönetimi ve detaylı raporlama özellikleri ile donatılmış kurumsal çözüm.",
   "version": "1.0.0",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait-primary",
@@ -39,19 +39,19 @@
       "name": "Hızlı Ekle",
       "short_name": "Ekle",
       "description": "Yeni ürün ekle",
-      "url": "/?action=quick-add"
+      "url": "./?action=quick-add"
     },
     {
       "name": "Barkod Tara",
       "short_name": "Tara",
       "description": "Barkod tarayıcıyı aç",
-      "url": "/?action=scan"
+      "url": "./?action=scan"
     },
     {
       "name": "Kritik Ürünler",
       "short_name": "Kritik",
       "description": "SKT'ye yakın ürünleri göster",
-      "url": "/?filter=critical"
+      "url": "./?filter=critical"
     }
   ],
   
