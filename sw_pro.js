@@ -1,5 +1,5 @@
 // Market Pro Service Worker
-const CACHE_NAME = 'market-pro-v2';
+const CACHE_NAME = 'market-pro-v3';
 const urlsToCache = [
   './market_yonetim_pwa.html',
   './manifest_pro.json'
