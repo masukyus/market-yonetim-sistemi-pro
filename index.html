@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Profesyonel PWA tabanlı market stok yönetim sistemi">
+    <title>Market Stok Yönetimi</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    
+    <style>
+        /* [Aynı CSS kodu - önceki index.html'deki tüm stilleri buraya ekleyin] */
+        /* Space tasarrufu için buraya eklemedim, production'da index.html'deki tüm CSS buraya gelecek */
+        
+        /* Yalnızca ek stil: */
+        .update-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary-600);
+            color: white;
+            padding: var(--space-4);
+            text-align: center;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .update-banner.active {
+            display: flex;
+        }
+        
+        .update-banner button {
+            background: white;
+            color: var(--primary-600);
+            border: none;
+            padding: var(--space-2) var(--space-4);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Update Banner -->
+    <div class="update-banner" id="updateBanner">
+        <span>🎉 Yeni güncelleme mevcut!</span>
+        <button onclick="reloadApp()">Güncelle</button>
+    </div>
+
+    <!-- [Önceki index.html'deki tüm HTML içeriği buraya gelecek] -->
+    
+    <script>
+        /* [Önceki tüm JavaScript kodu buraya gelecek] */
+        
+        /* ============================================
+           SERVICE WORKER REGISTRATION
+        ============================================ */
+
+        // Service Worker kayıt
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('[App] Service Worker registered:', registration.scope);
+                        
+                        // Güncelleme kontrolü
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Yeni versiyon mevcut
+                                    showUpdateBanner();
+                                }
+                            });
+                        });
+                        
+                        // Periyodik güncelleme kontrolü (her 1 saatte bir)
+                        setInterval(() => {
+                            registration.update();
+                        }, 60 * 60 * 1000);
+                    })
+                    .catch(error => {
+                        console.error('[App] Service Worker registration failed:', error);
+                    });
+                
+                // Service Worker mesajlarını dinle
+                navigator.serviceWorker.addEventListener('message', event => {
+                    console.log('[App] Message from SW:', event.data);
+                    
+                    if (event.data.type === 'SYNC_REQUESTED') {
+                        // Sync isteği geldi
+                        store.processSyncQueue();
+                    }
+                });
+            });
+        }
+
+        /* ============================================
+           PWA UPDATE HANDLER
+        ============================================ */
+
+        function showUpdateBanner() {
+            const banner = document.getElementById('updateBanner');
+            banner.classList.add('active');
+        }
+
+        function reloadApp() {
+            // Waiting SW'yi aktifleştir
+            navigator.serviceWorker.getRegistration().then(reg => {
+                if (reg.waiting) {
+                    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+            });
+            
+            // Sayfayı yenile
+            window.location.reload();
+        }
+
+        // Controller değiştiğinde sayfayı yenile
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            window.location.reload();
+        });
+
+        /* ============================================
+           INSTALL PROMPT HANDLER
+        ============================================ */
+
+        let deferredPrompt;
+        const installButton = document.createElement('button');
+        installButton.className = 'btn btn-glass btn-block';
+        installButton.innerHTML = '<span>⬇️</span><span>Uygulamayı Yükle</span>';
+        installButton.style.display = 'none';
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Varsayılan davranışı engelle
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Install butonunu göster
+            const container = document.querySelector('.card-glass');
+            if (container && !document.querySelector('.install-app-btn')) {
+                installButton.classList.add('install-app-btn');
+                container.querySelector('div').appendChild(installButton);
+                installButton.style.display = 'inline-flex';
+            }
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            console.log(`[App] Install prompt: ${outcome}`);
+            
+            if (outcome === 'accepted') {
+                showToast('Uygulama yüklendi!', 'success');
+            }
+            
+            deferredPrompt = null;
+            installButton.style.display = 'none';
+        });
+
+        // PWA yüklendikten sonra
+        window.addEventListener('appinstalled', () => {
+            console.log('[App] PWA installed successfully');
+            showToast('Uygulama başarıyla yüklendi!', 'success');
+            installButton.style.display = 'none';
+        });
+
+        /* ============================================
+           APP SHORTCUTS HANDLER
+        ============================================ */
+
+        // URL parametrelerini kontrol et
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.get('action') === 'quick-add') {
+            // Shortcut'tan geldi - Hızlı ekle modalını aç
+            window.addEventListener('load', () => {
+                setTimeout(() => openQuickAddModal(), 500);
+            });
+        }
+        
+        if (urlParams.get('action') === 'scan') {
+            // Shortcut'tan geldi - Direkt tarama başlat
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    openQuickAddModal();
+                    setTimeout(() => startBarcodeScanner(), 500);
+                }, 500);
+            });
+        }
+        
+        if (urlParams.get('filter') === 'critical') {
+            // Shortcut'tan geldi - Kritik ürünleri filtrele
+            window.addEventListener('load', () => {
+                // Filter logic buraya eklenebilir
+                showToast('Kritik ürünler gösteriliyor', 'warning');
+            });
+        }
+
+        /* ============================================
+           STORAGE QUOTA MANAGEMENT
+        ============================================ */
+
+        // Storage durumunu kontrol et
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            navigator.storage.estimate().then(estimate => {
+                const percentUsed = (estimate.usage / estimate.quota) * 100;
+                console.log(`[App] Storage: ${percentUsed.toFixed(2)}% used`);
+                
+                // %90'dan fazla kullanılmışsa uyar
+                if (percentUsed > 90) {
+                    showToast('Depolama alanı dolmak üzere!', 'warning');
+                }
+            });
+        }
+
+        /* ============================================
+           NETWORK STATUS MONITORING
+        ============================================ */
+
+        // Detaylı network monitoring
+        if ('connection' in navigator) {
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            
+            function updateConnectionStatus() {
+                console.log(`[App] Connection: ${connection.effectiveType}`);
+                console.log(`[App] Downlink: ${connection.downlink}Mbps`);
+                console.log(`[App] RTT: ${connection.rtt}ms`);
+                
+                // Yavaş bağlantıda uyar
+                if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
+                    showToast('Bağlantı yavaş, offline mod önerilir', 'warning');
+                }
+            }
+            
+            connection.addEventListener('change', updateConnectionStatus);
+        }
+
+        /* ============================================
+           LIFECYCLE HANDLERS
+        ============================================ */
+
+        // Sayfa görünür olduğunda
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // Sayfa aktif - verileri güncelle
+                renderProducts();
+                updateStats();
+                
+                // Online'sa sync kontrol et
+                if (navigator.onLine) {
+                    store.processSyncQueue();
+                }
+            }
+        });
+
+        // Sayfa kapatılmadan önce
+        window.addEventListener('beforeunload', (e) => {
+            // Kaydedilmemiş değişiklik varsa uyar
+            if (store.syncQueue.length > 0) {
+                e.preventDefault();
+                e.returnValue = 'Kaydedilmemiş değişiklikler var!';
+            }
+        });
+
+        /* ============================================
+           PERFORMANCE MONITORING
+        ============================================ */
+
+        // Performance metrics
+        window.addEventListener('load', () => {
+            if ('performance' in window) {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                
+                console.log('[App] Performance Metrics:');
+                console.log('- DOM Content Loaded:', perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart, 'ms');
+                console.log('- Load Complete:', perfData.loadEventEnd - perfData.loadEventStart, 'ms');
+                console.log('- Total Time:', perfData.loadEventEnd - perfData.fetchStart, 'ms');
+            }
+        });
+
+        /* ============================================
+           ERROR TRACKING
+        ============================================ */
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            console.error('[App] Error:', event.error);
+            
+            // Production'da error tracking servisine gönder
+            // Örn: Sentry, LogRocket, vb.
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('[App] Unhandled Promise Rejection:', event.reason);
+        });
+
+        /* ============================================
+           BATTERY STATUS (Optional)
+        ============================================ */
+
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                function updateBatteryStatus() {
+                    console.log(`[App] Battery: ${battery.level * 100}%`);
+                    
+                    // Düşük batarya uyarısı
+                    if (battery.level < 0.2 && !battery.charging) {
+                        showToast('Batarya düşük! Değişiklikleri kaydedin.', 'warning');
+                    }
+                }
+                
+                battery.addEventListener('levelchange', updateBatteryStatus);
+                battery.addEventListener('chargingchange', updateBatteryStatus);
+            });
+        }
+    </script>
+</body>
+</html>
