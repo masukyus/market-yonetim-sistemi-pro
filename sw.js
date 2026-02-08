@@ -21,9 +21,7 @@ const IMAGE_CACHE = `${CACHE_NAME}-images`;
 const STATIC_ASSETS = [
     './',
     './index.html',
-    './market_yonetim_pwa.html',
     './manifest.json',
-    './manifest-game.json',
     './icons/icon-192.svg',
     './icons/icon-512.svg',
     './icons/badge-72.svg',
