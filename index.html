@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#9333ea">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="description" content="Oyunlaştırılmış SKT Kontrol ve Stok Yönetimi">
@@ -158,6 +159,10 @@
                     lastScanDate: null
                 };
                 
+                // Constants - MUST be defined BEFORE generateSampleProducts()
+                this.locations = ['Depo A', 'Depo B', 'Mağaza 1', 'Mağaza 2', 'Saha'];
+                this.categories = ['Gıda', 'İçecek', 'Temizlik', 'Kozmetik', 'Diğer'];
+                
                 // Products
                 this.products = this.loadFromStorage('products') || this.generateSampleProducts();
                 
@@ -175,10 +180,6 @@
                     location: '',
                     expiryDate: ''
                 };
-                
-                // Constants
-                this.locations = ['Depo A', 'Depo B', 'Mağaza 1', 'Mağaza 2', 'Saha'];
-                this.categories = ['Gıda', 'İçecek', 'Temizlik', 'Kozmetik', 'Diğer'];
                 
                 // Check daily reset
                 this.checkDailyReset();
