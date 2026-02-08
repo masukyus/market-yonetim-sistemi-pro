@@ -1,6 +1,6 @@
 # 🏪 MARKET YÖNETİM SİSTEMİ PRO - KAPSAMLI REHBER
 
-## ⭐ YENİ ÖZELLİKLER v2.0
+## ⭐ YENİ ÖZELLİKLER v3.0
 
 ### 🎯 Kategori Bazlı SKT Kuralları (ÖNEMLİ!)
 
