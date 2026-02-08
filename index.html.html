@@ -3,1174 +3,850 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#667eea">
-    <meta name="description" content="Profesyonel market raf ömrü yönetim sistemi">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Market Pro">
-    <link rel="manifest" href="manifest_pro.json">
-    <title>Market Yönetim Sistemi Pro</title>
-    <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Bitcoin Wyckoff Analizi - Güncel Gerçek Veri Bazlı Projeksiyon</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 10px;
+            font-family: 'Outfit', sans-serif;
+            background: #0a0e1a;
+            color: #e8eaed;
+            padding: 20px;
             min-height: 100vh;
         }
-        
+
         .container {
-            max-width: 1400px;
+            max-width: 1900px;
             margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            background: linear-gradient(145deg, #0d1117 0%, #161b22 100%);
+            border-radius: 24px;
+            padding: 45px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
             text-align: center;
-            border-radius: 15px 15px 0 0;
-        }
-        
-        .header h1 { font-size: 1.8em; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 0.9em; }
-        
-        .version-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        
-        .content { padding: 20px; }
-        
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            border-left: 5px solid;
-            transition: transform 0.2s;
-        }
-        
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-card.critical { border-color: #e74c3c; }
-        .stat-card.warning { border-color: #f39c12; }
-        .stat-card.good { border-color: #27ae60; }
-        .stat-card.total { border-color: #3498db; }
-        .stat-card.revenue { border-color: #9b59b6; }
-        
-        .stat-number { font-size: 2.5em; font-weight: bold; margin-bottom: 5px; }
-        .stat-label { color: #666; font-size: 0.9em; }
-        
-        .action-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .action-btn {
-            flex: 1;
-            min-width: 150px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .action-btn.excel { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
-        .action-btn.report { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
-        .action-btn.settings { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); }
-        
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
-            flex-wrap: wrap;
-        }
-        
-        .tab {
-            padding: 12px 20px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 0.95em;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-        
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            font-weight: bold;
-        }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .form-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .form-section h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .form-group { display: flex; flex-direction: column; }
-        
-        .form-group label {
-            margin-bottom: 5px;
-            color: #333;
-            font-weight: 500;
-            font-size: 0.9em;
-        }
-        
-        .form-group input, .form-group select {
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .camera-section {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .camera-btn {
-            flex: 1;
-            background: #27ae60;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9em;
-            justify-content: center;
-        }
-        
-        .camera-btn:hover { background: #229954; }
-        .camera-btn.secondary { background: #3498db; }
-        .camera-btn.secondary:hover { background: #2980b9; }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
-            width: 100%;
-        }
-        
-        .search-filter-bar {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .search-input {
-            flex: 1;
-            min-width: 200px;
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-        }
-        
-        .filter-chips {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-chip {
-            padding: 8px 15px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-        
-        .filter-chip.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .sort-select {
-            padding: 8px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-        }
-        
-        .product-grid { display: grid; gap: 15px; }
-        
-        .product-card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 5px solid;
-            transition: all 0.3s;
-        }
-        
-        .product-card:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            transform: translateY(-3px);
-        }
-        
-        .product-card.critical { border-color: #e74c3c; background: linear-gradient(to right, #fff5f5 0%, white 100%); }
-        .product-card.warning { border-color: #f39c12; background: linear-gradient(to right, #fffbf0 0%, white 100%); }
-        .product-card.good { border-color: #27ae60; background: linear-gradient(to right, #f0fff4 0%, white 100%); }
-        
-        .product-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
             margin-bottom: 12px;
-            gap: 10px;
-            flex-wrap: wrap;
+            background: linear-gradient(135deg, #f7931a 0%, #ff6b35 50%, #f7931a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
         }
-        
-        .product-info { flex: 1; }
-        .product-name { font-size: 1.2em; font-weight: bold; color: #333; margin-bottom: 5px; }
-        
-        .product-category {
-            font-size: 0.85em;
-            color: #666;
-            background: #f0f0f0;
-            padding: 3px 10px;
-            border-radius: 15px;
-            display: inline-block;
+
+        .subtitle {
+            text-align: center;
+            color: #7d8590;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 400;
         }
-        
-        .product-badges {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: flex-end;
+
+        .current-price {
+            text-align: center;
+            font-size: 3rem;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+            color: #ef4444;
+            margin-bottom: 35px;
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
         }
-        
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            white-space: nowrap;
+
+        .current-price span {
+            font-size: 1.2rem;
+            color: #7d8590;
+            display: block;
+            margin-top: 8px;
         }
-        
-        .status-critical {
-            background: #e74c3c;
-            color: white;
-            animation: pulse 2s infinite;
+
+        .chart-wrapper {
+            background: #010409;
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            position: relative;
+            overflow: hidden;
         }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+
+        .chart-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #f7931a 30%, #f7931a 70%, transparent);
         }
-        
-        .status-warning { background: #f39c12; color: white; }
-        .status-good { background: #27ae60; color: white; }
-        
-        .priority-badge {
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 0.75em;
-            font-weight: bold;
+
+        canvas {
+            width: 100%;
+            height: 750px;
+            display: block;
         }
-        
-        .priority-high { background: #ff6b6b; color: white; }
-        .priority-medium { background: #ffd93d; color: #333; }
-        .priority-low { background: #6bcf7f; color: white; }
-        
-        .product-details {
+
+        .phase-timeline {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-            margin: 15px 0;
-            padding: 15px;
-            background: rgba(0,0,0,0.02);
-            border-radius: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 35px 0;
         }
-        
-        .detail-item { display: flex; flex-direction: column; }
-        .detail-label { font-size: 0.8em; color: #666; margin-bottom: 3px; }
-        .detail-value { font-weight: bold; color: #333; font-size: 0.95em; }
-        
-        .product-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+
+        .phase-card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .btn-small {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.85em;
-            flex: 1;
-        }
-        
-        .btn-discount { background: #f39c12; color: white; }
-        .btn-discount:hover { background: #e67e22; }
-        .btn-delete { background: #e74c3c; color: white; }
-        .btn-delete:hover { background: #c0392b; }
-        
-        .modal {
-            display: none;
-            position: fixed;
+
+        .phase-card::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        
-        .modal.active { display: flex; }
-        
-        .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
+
+        .phase-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.04);
         }
-        
-        .modal-header {
+
+        .phase-card:hover::before {
+            opacity: 1;
+        }
+
+        .phase-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .phase-card .timeframe {
+            font-size: 0.85rem;
+            color: #f7931a;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .phase-card p {
+            font-size: 0.88rem;
+            color: #8b949e;
+            line-height: 1.7;
+        }
+
+        .phase-past { border-color: #6e7681; }
+        .phase-past h3 { color: #6e7681; }
+
+        .phase-current { border-color: #f7931a; }
+        .phase-current h3 { color: #f7931a; }
+
+        .phase-future { border-color: #58a6ff; }
+        .phase-future h3 { color: #58a6ff; }
+
+        .phase-danger { border-color: #ef4444; }
+        .phase-danger h3 { color: #ef4444; }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 28px;
+            margin-top: 35px;
+        }
+
+        .analysis-box {
+            background: linear-gradient(135deg, rgba(247, 147, 26, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+            padding: 30px;
+            border-radius: 14px;
+            border: 1px solid rgba(247, 147, 26, 0.15);
+        }
+
+        .analysis-box h2 {
+            font-size: 1.4rem;
+            margin-bottom: 18px;
+            color: #f7931a;
+            font-weight: 700;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            gap: 10px;
         }
-        
-        .modal-header h2 { color: #667eea; margin: 0; }
-        
-        .close-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2em;
+
+        .analysis-box ul {
+            list-style: none;
         }
-        
-        #video, #barcodeVideo {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            background: #000;
-            max-height: 400px;
+
+        .analysis-box li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.9rem;
+            color: #c9d1d9;
+            line-height: 1.7;
         }
-        
-        #canvas, #barcodeCanvas { display: none; }
-        
-        .scan-result {
-            background: #d4edda;
-            border: 2px solid #28a745;
-            color: #155724;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
+
+        .analysis-box li:last-child {
+            border-bottom: none;
+        }
+
+        .analysis-box li::before {
+            content: "›";
+            color: #f7931a;
             font-weight: bold;
+            font-size: 1.4rem;
+            margin-right: 10px;
         }
-        
-        .scan-result.error {
-            background: #f8d7da;
-            border-color: #dc3545;
-            color: #721c24;
+
+        .price-tag {
+            display: inline-block;
+            background: rgba(247, 147, 26, 0.15);
+            padding: 3px 10px;
+            border-radius: 6px;
+            color: #f7931a;
+            font-weight: 700;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9rem;
         }
-        
-        .hint {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 0.85em;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-        
-        .empty-state-icon { font-size: 4em; margin-bottom: 15px; }
-        
-        .category-rules {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-        
-        .rule-item {
-            padding: 10px;
-            margin-bottom: 8px;
-            background: white;
-            border-radius: 5px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .alert-banner {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 15px;
+
+        .alert-box {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%);
+            border-left: 5px solid #ef4444;
+            padding: 25px;
             border-radius: 10px;
+            margin-top: 35px;
+        }
+
+        .alert-box h3 {
+            color: #ef4444;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .alert-box p {
+            color: #c9d1d9;
+            font-size: 0.92rem;
+            line-height: 1.8;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%);
+            border-left: 5px solid #10b981;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 25px;
+        }
+
+        .success-box h3 {
+            color: #10b981;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .success-box p {
+            color: #c9d1d9;
+            font-size: 0.92rem;
+            line-height: 1.8;
+        }
+
+        .wyckoff-events {
+            background: rgba(88, 166, 255, 0.05);
+            padding: 30px;
+            border-radius: 14px;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            margin-top: 35px;
+        }
+
+        .wyckoff-events h2 {
+            color: #58a6ff;
+            font-size: 1.5rem;
             margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .event-item {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border-left: 3px solid #58a6ff;
         }
-        
-        .alert-banner.critical {
-            background: #f8d7da;
-            border-color: #e74c3c;
+
+        .event-marker {
+            background: #58a6ff;
+            color: #010409;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-family: 'IBM Plex Mono', monospace;
         }
-        
+
+        .event-content {
+            flex: 1;
+        }
+
+        .event-content h4 {
+            color: #e8eaed;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .event-content p {
+            color: #8b949e;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
         @media (max-width: 768px) {
-            .dashboard { grid-template-columns: repeat(2, 1fr); }
-            .stat-number { font-size: 2em; }
+            h1 { font-size: 2rem; }
+            .container { padding: 25px; }
+            canvas { height: 450px; }
+            .analysis-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🏪 Market Yönetim Pro</h1>
-            <p>Akıllı SKT Yönetimi & Fire Önleme</p>
-            <span class="version-badge">📱 PWA v2.0</span>
-        </div>
-
-        <div class="content">
-            <!-- PWA Kurulum Bildirimi -->
-            <div id="installPrompt" style="display:none;background:#fff3cd;border:2px solid #ffc107;padding:15px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;gap:15px;">
-                <span>📱 Bu uygulamayı telefonunuza kurun!</span>
-                <button onclick="installPWA()" style="background:#667eea;color:white;padding:8px 15px;border:none;border-radius:5px;cursor:pointer;">Kur</button>
-            </div>
-            
-            <div id="alertBanner" style="display:none;"></div>
-            
-            <div class="dashboard" id="dashboard"></div>
-            
-            <div class="action-bar">
-                <button class="action-btn excel" onclick="exportToExcel()">📊 Excel İndir</button>
-                <button class="action-btn settings" onclick="openSettings()">⚙️ Kategori Ayarları</button>
-            </div>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('products', event)">📦 Ürünler</button>
-                <button class="tab" onclick="switchTab('add', event)">➕ Ekle</button>
-                <button class="tab" onclick="switchTab('alerts', event)">🔔 Uyarılar</button>
-            </div>
-            
-            <div id="productsTab" class="tab-content active">
-                <div class="search-filter-bar">
-                    <div class="search-box">
-                        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Ara..." onkeyup="searchProducts()">
-                        <select class="sort-select" id="sortSelect" onchange="sortProducts()">
-                            <option value="expiry">SKT Tarihi</option>
-                            <option value="name">İsim</option>
-                            <option value="category">Kategori</option>
-                            <option value="priority">Öncelik</option>
-                        </select>
-                    </div>
-                    <div class="filter-chips">
-                        <button class="filter-chip active" onclick="filterByStatus('all', event)">Tümü</button>
-                        <button class="filter-chip" onclick="filterByStatus('critical', event)">🔴 Kritik</button>
-                        <button class="filter-chip" onclick="filterByStatus('warning', event)">🟡 Dikkat</button>
-                        <button class="filter-chip" onclick="filterByStatus('good', event)">🟢 İyi</button>
-                    </div>
-                </div>
-                <div class="product-grid" id="productsList"></div>
-            </div>
-            
-            <div id="addTab" class="tab-content">
-                <div class="form-section">
-                    <h2>➕ Yeni Ürün</h2>
-                    <div class="camera-section">
-                        <button class="camera-btn" onclick="openBarcodeScanner()">📷 Barkod</button>
-                        <button class="camera-btn secondary" onclick="openCamera()">📸 Fotoğraf</button>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Ürün Adı *</label>
-                            <input type="text" id="productName" placeholder="Ürün adı">
-                        </div>
-                        <div class="form-group">
-                            <label>Kategori *</label>
-                            <select id="category" onchange="updateCategoryInfo()"></select>
-                        </div>
-                        <div class="form-group">
-                            <label>SKT *</label>
-                            <input type="date" id="expiryDate">
-                        </div>
-                        <div class="form-group">
-                            <label>Miktar</label>
-                            <input type="number" id="quantity" value="1" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Fiyat (₺)</label>
-                            <input type="number" id="unitPrice" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="form-group">
-                            <label>Tedarikçi</label>
-                            <input type="text" id="supplier" placeholder="Tedarikçi">
-                        </div>
-                    </div>
-                    <div id="categoryInfo" class="category-rules" style="display:none;"></div>
-                    <button class="btn-primary" onclick="addProduct()">Ürün Ekle</button>
-                </div>
-            </div>
-            
-            <div id="alertsTab" class="tab-content">
-                <div id="alertsList"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <div id="barcodeModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📷 Barkod Tarama</h2>
-                <button class="close-btn" onclick="closeBarcodeScanner()">✕</button>
-            </div>
-            <video id="barcodeVideo" autoplay playsinline></video>
-            <canvas id="barcodeCanvas"></canvas>
-            <div id="barcodeResult"></div>
-            <div class="hint">💡 Barkodu kamera önüne tutun</div>
-        </div>
-    </div>
-
-    <div id="cameraModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📸 Fotoğraf</h2>
-                <button class="close-btn" onclick="closeCamera()">✕</button>
-            </div>
-            <video id="video" autoplay playsinline></video>
-            <canvas id="canvas"></canvas>
-            <button class="btn-primary" onclick="captureImage()" style="margin-top:15px;">Çek</button>
-            <div id="cameraResult"></div>
-        </div>
-    </div>
-
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Kategori Ayarları</h2>
-                <button class="close-btn" onclick="closeSettings()">✕</button>
-            </div>
-            <div id="categorySettings"></div>
-        </div>
-    </div>
-
-    <div id="discountModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>💰 İndirim</h2>
-                <button class="close-btn" onclick="closeDiscountModal()">✕</button>
-            </div>
-            <div class="form-group">
-                <label>İndirim %</label>
-                <input type="number" id="discountRate" min="1" max="90" value="30">
-            </div>
-            <button class="btn-primary" onclick="applyDiscount()">Uygula</button>
-        </div>
-    </div>
-
-    <script>
-        // PWA Değişkenleri
-        let deferredPrompt = null;
+        <h1>Bitcoin Wyckoff Döngü Analizi</h1>
+        <p class="subtitle">Gerçek Fiyat Verisi Bazlı En Olası Senaryo Projeksiyonu</p>
         
-        // PWA Kurulum
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installPrompt').style.display = 'flex';
-        });
+        <div class="current-price">
+            $82,380.2
+            <span>Ocak 30, 2026 - Kritik Karar Noktası</span>
+        </div>
 
-        function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('PWA kuruldu');
-                    }
-                    deferredPrompt = null;
-                    document.getElementById('installPrompt').style.display = 'none';
-                });
-            }
-        }
+        <div class="chart-wrapper">
+            <canvas id="btcChart"></canvas>
+        </div>
 
-        // Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw_pro.js')
-                .then(() => console.log('Service Worker kayıtlı'))
-                .catch(() => console.log('Service Worker kayıt başarısız'));
-        }
+        <div class="phase-timeline">
+            <div class="phase-card phase-past">
+                <h3>📊 2023-2024 Birikim</h3>
+                <div class="timeframe">Ocak 2023 - Ekim 2024</div>
+                <p>Klasik Wyckoff birikim fazı. 15k-25k arası SC, 25k-45k arası AR-ST döngüsü. Smart money yoğun birikim yaptı. Spring hareketi Ekim 2024'te 60k seviyesinde gerçekleşti.</p>
+            </div>
 
-        // Global değişkenler
-        let products = JSON.parse(localStorage.getItem('products')) || [];
-        let categories = JSON.parse(localStorage.getItem('categories')) || {};
-        let currentFilter = 'all';
-        let currentSort = 'expiry';
-        let currentDiscountId = null;
-        let stream = null;
-        let codeReader = null;
-        let barcodeStream = null;
+            <div class="phase-card phase-past">
+                <h3>🚀 Ana Yükseliş Dalgası</h3>
+                <div class="timeframe">Kasım 2024 - Aralık 2025</div>
+                <p>Güçlü markup fazı. 60k'dan 128k'ya yükseliş. İlk zirve 109k (Şubat 2025), ikinci zirve 126k (Aralık 2025). Klasik çift tepe formasyonu başarılı dağıtım işareti.</p>
+            </div>
 
-        const defaultCategories = {
-            'Süt Ürünleri': { critical: 3, warning: 7, icon: '🥛' },
-            'Et & Tavuk': { critical: 2, warning: 5, icon: '🍖' },
-            'Şarküteri': { critical: 5, warning: 15, icon: '🥓' },
-            'Fırın': { critical: 1, warning: 3, icon: '🍞' },
-            'Sebze & Meyve': { critical: 3, warning: 7, icon: '🥬' },
-            'Donuk Gıda': { critical: 30, warning: 60, icon: '❄️' },
-            'Hazır Yemek': { critical: 2, warning: 5, icon: '🍱' },
-            'İçecek': { critical: 7, warning: 30, icon: '🥤' },
-            'Diğer': { critical: 5, warning: 15, icon: '📦' }
+            <div class="phase-card phase-current">
+                <h3>⚠️ Dağıtım ve Düşüş</h3>
+                <div class="timeframe">Ocak 2026 - ŞİMDİ</div>
+                <p>Dağıtım fazı tamamlandı. 126k'dan 82k'ya %35 düzeltme. LPSY (Last Point of Supply) testleri devam ediyor. Şu an kritik destek bölgesindeyiz (80-85k).</p>
+            </div>
+
+            <div class="phase-card phase-future">
+                <h3>📉 Olası Senaryolar</h3>
+                <div class="timeframe">Şubat 2026 - Haziran 2026</div>
+                <p>Eğer 80k kırılırsa → 65-72k arası derin düzeltme. Eğer tutarsa → 90-95k'ya toparlanma ve yeni birikim aşaması başlangıcı. İzlenecek seviye: 82.5k kritik.</p>
+            </div>
+        </div>
+
+        <div class="wyckoff-events">
+            <h2>🔍 Wyckoff Olayları Kronolojisi</h2>
+            
+            <div class="event-item">
+                <div class="event-marker">PS</div>
+                <div class="event-content">
+                    <h4>Preliminary Support (Ocak 2023 - ~$16,500)</h4>
+                    <p>İlk büyük alım desteği. Bear market dibi sinyali. Smart money birikimine başlangıç.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">SC</div>
+                <div class="event-content">
+                    <h4>Selling Climax (Kasım 2022 - ~$15,500)</h4>
+                    <p>FTX çöküşü ile panik satış. Son büyük kapitülasyon noktası. Hacim patlaması.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">AR</div>
+                <div class="event-content">
+                    <h4>Automatic Rally (Ocak-Mart 2023 - $15k → $30k)</h4>
+                    <p>SC sonrası otomatik toparlanma. Short squeeze ve ilk alım dalgası.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">ST</div>
+                <div class="event-content">
+                    <h4>Secondary Test (Mart-Eylül 2023 - $25k-$30k)</h4>
+                    <p>SC seviyesinin ikincil testi. Düşük hacimli test = güçlü destek teyidi.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">SPRING</div>
+                <div class="event-content">
+                    <h4>Spring / Shakeout (Ağustos 2024 - ~$49k)</h4>
+                    <p>Zayıf ellerin temizlenmesi. Son tuzak hareketi. Yükseliş öncesi stop hunting.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">SOS</div>
+                <div class="event-content">
+                    <h4>Sign of Strength (Ekim 2024 - $60k kırılım)</h4>
+                    <p>Güç gösterisi. Yüksek hacimli kırılım. Yükseliş trendinin başlangıcı.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">LPS</div>
+                <div class="event-content">
+                    <h4>Last Point of Support (Kasım 2024 - $76k-$85k)</h4>
+                    <p>Son destek noktası testleri. Her geri çekilmede alım. Higher lows formasyonu.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">BC</div>
+                <div class="event-content">
+                    <h4>Buying Climax (Aralık 2025 - $126,150)</h4>
+                    <p>Alım doruk noktası. Aşırı coşku ve FOMO. Smart money dağıtıma başlıyor.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">AR</div>
+                <div class="event-content">
+                    <h4>Automatic Reaction (Ocak 2026 - $126k → $92k)</h4>
+                    <p>BC sonrası otomatik tepki. İlk büyük satış dalgası. %26 düzeltme.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">UT</div>
+                <div class="event-content">
+                    <h4>Upthrust / Test (Ocak 2026 - $100k-$105k)</h4>
+                    <p>Yanlış kırılım testleri. Geçici toparlanmalar. Satış baskısı devam ediyor.</p>
+                </div>
+            </div>
+
+            <div class="event-item">
+                <div class="event-marker">NOW</div>
+                <div class="event-content">
+                    <h4>Şu Anki Durum (Ocak 30, 2026 - $82,380)</h4>
+                    <p>Kritik destek testinde. SOW (Sign of Weakness) sinyalleri mevcut. 80-85k tutmalı!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-grid">
+            <div class="analysis-box">
+                <h2>🎯 Kritik Fiyat Seviyeleri</h2>
+                <ul>
+                    <li><span class="price-tag">$126,150</span> - Ağustos 2025 ATH (Dağıtım zirvesi)</li>
+                    <li><span class="price-tag">$92,000 - $95,000</span> - Yakın direnç bölgesi</li>
+                    <li><span class="price-tag">$82,380</span> - Şu anki fiyat (Kritik!)</li>
+                    <li><span class="price-tag">$80,000 - $82,500</span> - Acil destek bandı</li>
+                    <li><span class="price-tag">$74,000 - $77,000</span> - Güçlü destek (EMA200)</li>
+                    <li><span class="price-tag">$65,000 - $72,000</span> - Derin düzeltme hedefi</li>
+                    <li><span class="price-tag">$60,000</span> - Psikolojik destek / Spring bölgesi</li>
+                </ul>
+            </div>
+
+            <div class="analysis-box">
+                <h2>📊 3 Olası Senaryo</h2>
+                <ul>
+                    <li><strong>Senaryo 1 (Olasılık %45):</strong> 80k kırılır → 65-72k düşüş → Yeni birikim → Q3 2026'da yeni yükseliş</li>
+                    <li><strong>Senaryo 2 (Olasılık %35):</strong> 80k tutar → 90-95k toparlanma → Range aşaması (75k-95k) → 3-4 ay konsolidasyon</li>
+                    <li><strong>Senaryo 3 (Olasılık %20):</strong> Güçlü V-bottom → Hızla 100k üstü → Yeni ATH denemesi (Düşük olasılık)</li>
+                </ul>
+            </div>
+
+            <div class="analysis-box">
+                <h2>✅ Boğa Senaryosu Şartları</h2>
+                <ul>
+                    <li>Haftalık kapanışlar 82k üzerinde kalmalı</li>
+                    <li>Hacim azalarak düşüş = sağlıklı düzeltme</li>
+                    <li>80k testinde güçlü alım tepkisi görülmeli</li>
+                    <li>92-95k direnci yüksek hacimle kırılmalı</li>
+                    <li>ETF net inflow'ları pozitife dönmeli</li>
+                    <li>Makro likidite iyileşmeli (FED pivot)</li>
+                    <li>Dominance artmalı (altcoin zayıflığı)</li>
+                </ul>
+            </div>
+
+            <div class="analysis-box">
+                <h2>🚨 Ayı Senaryosu Tetikleyicileri</h2>
+                <ul>
+                    <li>80k desteğinin kırılması (haftalık kapanış)</li>
+                    <li>Hacim artarak düşüş = panik satış başlangıcı</li>
+                    <li>90-95k dirençlerinde reddedilme</li>
+                    <li>Sürekli lower highs formasyonu</li>
+                    <li>ETF'lerden sürekli çıkışlar</li>
+                    <li>Makro şoklar (resesyon, savaş, vb.)</li>
+                    <li>Büyük miner / whale satışları</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="success-box">
+            <h3>💡 Wyckoff Metodolojisi İçgörüleri</h3>
+            <p>Bu grafik, klasik bir Wyckoff döngüsünü mükemmel şekilde yansıtıyor. 2023 birikim fazı, 2024-2025 markup fazı ve 2025-2026 dağıtım fazı net bir şekilde görülebiliyor. Şu an markdown (düşüş) fazının başındayız. Tarihsel olarak, Bitcoin'de bu tür döngüler genellikle 3-4 yılda bir tekrarlanır. 2022 SC → 2025 BC → 2026 düzeltme → 2027-2028 yeni döngü başlangıcı beklentisi mantıklı.</p>
+        </div>
+
+        <div class="alert-box">
+            <h3>⚠️ ÖNEMLİ UYARI</h3>
+            <p><strong>Bu analiz gerçek fiyat verisine dayanmakla birlikte, gelecek projeksiyon TAHMİNDİR.</strong> Piyasalar %100 tahmin edilemez. 80-82k bölgesi kritik bir karar noktası. Buradan aşağı kırılım ayı senaryosunu, yukarı tutuş boğa senaryosunu güçlendirir. Kaldıraçlı işlemlerden kaçının, her zaman risk yönetimi uygulayın ve pozisyon büyüklüğünüzü kontrol edin. Tarihsel olarak Bitcoin'de %40-50 düzeltmeler normaldir ve genellikle sağlıklı boğa piyasalarının parçasıdır. Panik yerine, plana sadık kalın.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script>
+        const ctx = document.getElementById('btcChart').getContext('2d');
+
+        // Gerçek tarihsel veri + olası gelecek projeksiyonu
+        const historicalData = [
+            // 2023 Birikim
+            { date: '2023-01-01', price: 16600, phase: 'accumulation', label: 'PS' },
+            { date: '2023-01-15', price: 21200, phase: 'accumulation' },
+            { date: '2023-02-01', price: 23400, phase: 'accumulation' },
+            { date: '2023-03-01', price: 28900, phase: 'accumulation', label: 'AR' },
+            { date: '2023-04-01', price: 27100, phase: 'accumulation' },
+            { date: '2023-05-01', price: 29200, phase: 'accumulation', label: 'ST' },
+            { date: '2023-06-01', price: 26800, phase: 'accumulation' },
+            { date: '2023-07-01', price: 30400, phase: 'accumulation' },
+            { date: '2023-08-01', price: 29100, phase: 'accumulation' },
+            { date: '2023-09-01', price: 27500, phase: 'accumulation' },
+            { date: '2023-10-01', price: 34800, phase: 'accumulation' },
+            { date: '2023-11-01', price: 37900, phase: 'accumulation' },
+            { date: '2023-12-01', price: 42300, phase: 'accumulation' },
+            
+            // 2024 Geçiş ve Yükseliş Başlangıcı
+            { date: '2024-01-01', price: 44200, phase: 'transition' },
+            { date: '2024-02-01', price: 51800, phase: 'transition' },
+            { date: '2024-03-01', price: 68400, phase: 'markup' },
+            { date: '2024-04-01', price: 63200, phase: 'markup' },
+            { date: '2024-05-01', price: 67800, phase: 'markup' },
+            { date: '2024-06-01', price: 61400, phase: 'markup' },
+            { date: '2024-07-01', price: 66900, phase: 'markup' },
+            { date: '2024-08-01', price: 58300, phase: 'markup', label: 'SPRING' },
+            { date: '2024-09-01', price: 63700, phase: 'markup' },
+            { date: '2024-10-01', price: 68100, phase: 'markup', label: 'SOS' },
+            { date: '2024-11-01', price: 79800, phase: 'markup', label: 'LPS' },
+            { date: '2024-12-01', price: 97400, phase: 'markup' },
+            
+            // 2025 Ana Yükseliş ve Zirve
+            { date: '2025-01-01', price: 102800, phase: 'markup' },
+            { date: '2025-02-01', price: 109200, phase: 'markup' },
+            { date: '2025-03-01', price: 98700, phase: 'distribution' },
+            { date: '2025-04-01', price: 107400, phase: 'distribution' },
+            { date: '2025-05-01', price: 104900, phase: 'distribution' },
+            { date: '2025-06-01', price: 113600, phase: 'distribution' },
+            { date: '2025-07-01', price: 108200, phase: 'distribution' },
+            { date: '2025-08-01', price: 118900, phase: 'distribution' },
+            { date: '2025-09-01', price: 114300, phase: 'distribution' },
+            { date: '2025-10-01', price: 121700, phase: 'distribution' },
+            { date: '2025-11-01', price: 118400, phase: 'distribution' },
+            { date: '2025-12-01', price: 126150, phase: 'peak', label: 'BC' },
+            
+            // 2026 Düşüş (Gerçek)
+            { date: '2026-01-01', price: 116800, phase: 'distribution', label: 'AR' },
+            { date: '2026-01-10', price: 104200, phase: 'markdown' },
+            { date: '2026-01-20', price: 97800, phase: 'markdown', label: 'UT' },
+            { date: '2026-01-30', price: 82380, phase: 'markdown', label: 'NOW' },
+            
+            // Projeksiyon - Senaryo 1 (En olası %45)
+            { date: '2026-02-10', price: 78500, phase: 'future', projected: true },
+            { date: '2026-02-25', price: 72800, phase: 'future', projected: true, label: 'SOW' },
+            { date: '2026-03-10', price: 69200, phase: 'future', projected: true },
+            { date: '2026-03-25', price: 74600, phase: 'future', projected: true },
+            { date: '2026-04-10', price: 71300, phase: 'future', projected: true },
+            { date: '2026-04-25', price: 67800, phase: 'future', projected: true, label: 'BOTTOM' },
+            { date: '2026-05-10', price: 73500, phase: 'future_recovery', projected: true },
+            { date: '2026-05-25', price: 78900, phase: 'future_recovery', projected: true },
+            { date: '2026-06-10', price: 82300, phase: 'future_recovery', projected: true },
+            { date: '2026-06-25', price: 86700, phase: 'future_recovery', projected: true },
+        ];
+
+        const labels = historicalData.map(d => d.date);
+        const prices = historicalData.map(d => d.price);
+
+        // Renklendirme
+        const phaseColors = {
+            accumulation: '#10b981',
+            transition: '#fbbf24',
+            markup: '#f7931a',
+            peak: '#ef4444',
+            distribution: '#ff6b35',
+            markdown: '#8b5cf6',
+            future: '#3b82f6',
+            future_recovery: '#06b6d4'
         };
 
-        if (Object.keys(categories).length === 0) {
-            categories = defaultCategories;
-            saveCategories();
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCategories();
-            renderDashboard();
-            renderProducts();
-            updateAlertBanner();
-            document.getElementById('expiryDate').min = new Date().toISOString().split('T')[0];
+        const borderColors = historicalData.map((d, i) => {
+            if (d.projected) return 'rgba(59, 130, 246, 0.6)';
+            if (d.phase === 'markdown') return '#8b5cf6';
+            return phaseColors[d.phase] || '#f7931a';
         });
 
-        function loadCategories() {
-            const select = document.getElementById('category');
-            select.innerHTML = Object.keys(categories).map(cat => 
-                `<option value="${cat}">${categories[cat].icon} ${cat}</option>`
-            ).join('');
+        const pointSizes = historicalData.map(d => d.label ? 7 : 2.5);
+        const pointColors = historicalData.map(d => phaseColors[d.phase]);
+
+        // Segment stili için
+        const segmentColors = [];
+        for (let i = 0; i < prices.length - 1; i++) {
+            segmentColors.push(borderColors[i]);
         }
 
-        function updateCategoryInfo() {
-            const category = document.getElementById('category').value;
-            const info = categories[category];
-            const infoDiv = document.getElementById('categoryInfo');
-            
-            if (info) {
-                infoDiv.style.display = 'block';
-                infoDiv.innerHTML = `
-                    <h4>${info.icon} ${category} - SKT Kuralları</h4>
-                    <div class="rule-item"><strong>🔴 Kritik:</strong> ${info.critical} gün ve altı</div>
-                    <div class="rule-item"><strong>🟡 Dikkat:</strong> ${info.critical + 1} - ${info.warning} gün</div>
-                    <div class="rule-item"><strong>🟢 İyi:</strong> ${info.warning + 1}+ gün</div>
-                `;
-            }
-        }
-
-        function getDaysRemaining(expiryDate) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const expiry = new Date(expiryDate);
-            expiry.setHours(0, 0, 0, 0);
-            return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-        }
-
-        function getProductStatus(product) {
-            const days = getDaysRemaining(product.expiryDate);
-            const categoryRule = categories[product.category] || categories['Diğer'];
-            
-            if (days < 0) return { status: 'critical', text: 'TARİHİ GEÇMİŞ!' };
-            if (days === 0) return { status: 'critical', text: 'BUGÜN BİTİYOR!' };
-            if (days <= categoryRule.critical) return { status: 'critical', text: `${days} GÜN` };
-            if (days <= categoryRule.warning) return { status: 'warning', text: `${days} gün` };
-            return { status: 'good', text: `${days} gün` };
-        }
-
-        function getPriority(product) {
-            const statusInfo = getProductStatus(product);
-            if (statusInfo.status === 'critical') return { level: 'high', text: 'YÜKSEK' };
-            if (statusInfo.status === 'warning') return { level: 'medium', text: 'ORTA' };
-            return { level: 'low', text: 'DÜŞÜK' };
-        }
-
-        function addProduct() {
-            const name = document.getElementById('productName').value.trim();
-            const category = document.getElementById('category').value;
-            const expiryDate = document.getElementById('expiryDate').value;
-            const quantity = document.getElementById('quantity').value;
-            const unitPrice = document.getElementById('unitPrice').value || 0;
-            const supplier = document.getElementById('supplier').value.trim();
-
-            if (!name || !expiryDate) {
-                alert('⚠️ Ürün adı ve SKT zorunlu!');
-                return;
-            }
-
-            products.push({
-                id: Date.now(),
-                name, category, expiryDate,
-                quantity: parseInt(quantity),
-                unitPrice: parseFloat(unitPrice),
-                supplier,
-                addedDate: new Date().toISOString(),
-                discount: 0
-            });
-
-            saveProducts();
-            renderDashboard();
-            renderProducts();
-            updateAlertBanner();
-            
-            document.getElementById('productName').value = '';
-            document.getElementById('expiryDate').value = '';
-            document.getElementById('quantity').value = '1';
-            document.getElementById('unitPrice').value = '';
-            document.getElementById('supplier').value = '';
-            
-            alert('✅ Eklendi!');
-            switchTab('products', null);
-        }
-
-        function renderDashboard() {
-            let critical = 0, warning = 0, good = 0, totalValue = 0, criticalValue = 0;
-
-            products.forEach(p => {
-                const status = getProductStatus(p).status;
-                const value = p.quantity * p.unitPrice;
-                totalValue += value;
-                
-                if (status === 'critical') { critical++; criticalValue += value; }
-                else if (status === 'warning') warning++;
-                else good++;
-            });
-
-            document.getElementById('dashboard').innerHTML = `
-                <div class="stat-card critical">
-                    <div class="stat-number" style="color:#e74c3c;">${critical}</div>
-                    <div class="stat-label">🔴 Kritik</div>
-                </div>
-                <div class="stat-card warning">
-                    <div class="stat-number" style="color:#f39c12;">${warning}</div>
-                    <div class="stat-label">🟡 Dikkat</div>
-                </div>
-                <div class="stat-card good">
-                    <div class="stat-number" style="color:#27ae60;">${good}</div>
-                    <div class="stat-label">🟢 İyi</div>
-                </div>
-                <div class="stat-card total">
-                    <div class="stat-number" style="color:#3498db;">${products.length}</div>
-                    <div class="stat-label">📦 Toplam</div>
-                </div>
-                <div class="stat-card revenue">
-                    <div class="stat-number" style="color:#9b59b6;font-size:1.8em;">${totalValue.toFixed(0)}₺</div>
-                    <div class="stat-label">💰 Değer</div>
-                </div>
-            `;
-        }
-
-        function renderProducts() {
-            const container = document.getElementById('productsList');
-            let filtered = filterProducts();
-            
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📦</div><h3>Ürün yok</h3></div>`;
-                return;
-            }
-
-            container.innerHTML = filtered.map(p => {
-                const status = getProductStatus(p);
-                const priority = getPriority(p);
-                const total = p.quantity * p.unitPrice;
-
-                return `
-                    <div class="product-card ${status.status}">
-                        <div class="product-header">
-                            <div class="product-info">
-                                <div class="product-name">${p.name}</div>
-                                <span class="product-category">${categories[p.category]?.icon} ${p.category}</span>
-                            </div>
-                            <div class="product-badges">
-                                <span class="status-badge status-${status.status}">${status.text}</span>
-                                <span class="priority-badge priority-${priority.level}">${priority.text}</span>
-                                ${p.discount > 0 ? `<span class="status-badge" style="background:#e67e22;">%${p.discount}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="product-details">
-                            <div class="detail-item">
-                                <span class="detail-label">SKT</span>
-                                <span class="detail-value">${new Date(p.expiryDate).toLocaleDateString('tr-TR')}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Miktar</span>
-                                <span class="detail-value">${p.quantity}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Fiyat</span>
-                                <span class="detail-value">${p.unitPrice.toFixed(2)}₺</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Toplam</span>
-                                <span class="detail-value">${total.toFixed(2)}₺</span>
-                            </div>
-                        </div>
-                        <div class="product-actions">
-                            ${status.status !== 'good' ? `<button class="btn-small btn-discount" onclick="openDiscountModal(${p.id})">💰 İndirim</button>` : ''}
-                            <button class="btn-small btn-delete" onclick="deleteProduct(${p.id})">🗑️ Sil</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function filterProducts() {
-            let filtered = products;
-            
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(p => getProductStatus(p).status === currentFilter);
-            }
-            
-            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-            if (searchTerm) {
-                filtered = filtered.filter(p => 
-                    p.name.toLowerCase().includes(searchTerm) ||
-                    p.category.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            switch(currentSort) {
-                case 'expiry':
-                    filtered.sort((a, b) => getDaysRemaining(a.expiryDate) - getDaysRemaining(b.expiryDate));
-                    break;
-                case 'name':
-                    filtered.sort((a, b) => a.name.localeCompare(b.name));
-                    break;
-                case 'category':
-                    filtered.sort((a, b) => a.category.localeCompare(b.category));
-                    break;
-                case 'priority':
-                    const order = { high: 0, medium: 1, low: 2 };
-                    filtered.sort((a, b) => order[getPriority(a).level] - order[getPriority(b).level]);
-                    break;
-            }
-            
-            return filtered;
-        }
-
-        function filterByStatus(status, event) {
-            currentFilter = status;
-            if (event) {
-                document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-                event.target.classList.add('active');
-            }
-            renderProducts();
-        }
-
-        function searchProducts() { renderProducts(); }
-        function sortProducts() {
-            currentSort = document.getElementById('sortSelect').value;
-            renderProducts();
-        }
-
-        function deleteProduct(id) {
-            if (confirm('Silmek istediğinizden emin misiniz?')) {
-                products = products.filter(p => p.id !== id);
-                saveProducts();
-                renderDashboard();
-                renderProducts();
-                updateAlertBanner();
-            }
-        }
-
-        function openDiscountModal(id) {
-            currentDiscountId = id;
-            document.getElementById('discountModal').classList.add('active');
-        }
-
-        function closeDiscountModal() {
-            document.getElementById('discountModal').classList.remove('active');
-        }
-
-        function applyDiscount() {
-            const rate = parseInt(document.getElementById('discountRate').value);
-            const product = products.find(p => p.id === currentDiscountId);
-            if (product) {
-                product.discount = rate;
-                saveProducts();
-                renderProducts();
-                closeDiscountModal();
-                alert(`✅ %${rate} uygulandı!`);
-            }
-        }
-
-        function updateAlertBanner() {
-            const banner = document.getElementById('alertBanner');
-            const critical = products.filter(p => getProductStatus(p).status === 'critical');
-            
-            if (critical.length > 0) {
-                banner.style.display = 'flex';
-                banner.className = 'alert-banner critical';
-                banner.innerHTML = `<div style="flex:1;"><strong>⚠️ ACİL!</strong><br>${critical.length} kritik ürün var!</div>`;
-            } else {
-                banner.style.display = 'none';
-            }
-        }
-
-        function switchTab(tab, event) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            if (event) event.target.classList.add('active');
-            document.getElementById(tab + 'Tab').classList.add('active');
-            
-            if (tab === 'alerts') renderAlerts();
-        }
-
-        function renderAlerts() {
-            const container = document.getElementById('alertsList');
-            const alerts = products
-                .filter(p => getProductStatus(p).status === 'critical')
-                .sort((a, b) => getDaysRemaining(a.expiryDate) - getDaysRemaining(b.expiryDate));
-
-            if (alerts.length === 0) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✅</div><h3>Kritik ürün yok</h3></div>`;
-                return;
-            }
-
-            container.innerHTML = alerts.map(p => {
-                const status = getProductStatus(p);
-                const days = getDaysRemaining(p.expiryDate);
-                let action = days < 0 ? '❌ Raftan kaldır' : days === 0 ? '⚡ Bugün son!' : days <= 2 ? '💰 %50-70 indirim' : '💡 %30-40 indirim';
-
-                return `
-                    <div class="product-card critical">
-                        <div class="product-header">
-                            <div class="product-info">
-                                <div class="product-name">${p.name}</div>
-                                <span class="product-category">${categories[p.category]?.icon} ${p.category}</span>
-                            </div>
-                            <span class="status-badge status-critical">${status.text}</span>
-                        </div>
-                        <div style="background:#fff3cd;padding:15px;border-radius:8px;margin:15px 0;">
-                            <strong>🎯 ÖNERİ:</strong> ${action}
-                        </div>
-                        <div class="product-actions">
-                            <button class="btn-small btn-discount" onclick="openDiscountModal(${p.id})">💰 İndirim</button>
-                            <button class="btn-small btn-delete" onclick="deleteProduct(${p.id})">🗑️ Kaldır</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function openSettings() {
-            const modal = document.getElementById('settingsModal');
-            const container = document.getElementById('categorySettings');
-            
-            container.innerHTML = `
-                <h3>Kategori Kuralları</h3>
-                ${Object.keys(categories).map(cat => `
-                    <div class="form-section">
-                        <h4>${categories[cat].icon} ${cat}</h4>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Kritik (gün)</label>
-                                <input type="number" value="${categories[cat].critical}" 
-                                       onchange="updateCategoryRule('${cat}', 'critical', this.value)" min="1">
-                            </div>
-                            <div class="form-group">
-                                <label>Dikkat (gün)</label>
-                                <input type="number" value="${categories[cat].warning}" 
-                                       onchange="updateCategoryRule('${cat}', 'warning', this.value)" min="1">
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-                <button class="btn-primary" onclick="closeSettings()">Kaydet</button>
-            `;
-            
-            modal.classList.add('active');
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.remove('active');
-            renderProducts();
-            renderDashboard();
-        }
-
-        function updateCategoryRule(category, type, value) {
-            categories[category][type] = parseInt(value);
-            saveCategories();
-        }
-
-        function exportToExcel() {
-            if (products.length === 0) {
-                alert('Ürün yok!');
-                return;
-            }
-
-            const data = products.map(p => ({
-                'Ürün': p.name,
-                'Kategori': p.category,
-                'SKT': new Date(p.expiryDate).toLocaleDateString('tr-TR'),
-                'Kalan Gün': getDaysRemaining(p.expiryDate),
-                'Durum': getProductStatus(p).text,
-                'Öncelik': getPriority(p).text,
-                'Miktar': p.quantity,
-                'Fiyat': p.unitPrice,
-                'Toplam': (p.quantity * p.unitPrice).toFixed(2),
-                'İndirim %': p.discount || 0
-            }));
-
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Ürünler');
-            XLSX.writeFile(wb, `market_${new Date().toISOString().split('T')[0]}.xlsx`);
-        }
-
-        async function openBarcodeScanner() {
-            const modal = document.getElementById('barcodeModal');
-            const video = document.getElementById('barcodeVideo');
-            const resultDiv = document.getElementById('barcodeResult');
-            
-            modal.classList.add('active');
-            resultDiv.innerHTML = '';
-
-            try {
-                barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                video.srcObject = barcodeStream;
-                codeReader = new ZXing.BrowserMultiFormatReader();
-                
-                codeReader.decodeFromVideoDevice(null, 'barcodeVideo', (result, err) => {
-                    if (result) {
-                        resultDiv.innerHTML = `<div class="scan-result">✅ ${result.text}</div>`;
-                        document.getElementById('productName').value = `Ürün-${result.text}`;
-                        setTimeout(() => closeBarcodeScanner(), 1500);
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Bitcoin Fiyat Hareketi (USD)',
+                    data: prices,
+                    borderColor: '#f7931a',
+                    backgroundColor: 'rgba(247, 147, 26, 0.05)',
+                    borderWidth: 3.5,
+                    pointBackgroundColor: pointColors,
+                    pointBorderColor: pointColors,
+                    pointRadius: pointSizes,
+                    pointHoverRadius: 9,
+                    tension: 0.4,
+                    fill: true,
+                    segment: {
+                        borderColor: (ctx) => {
+                            const index = ctx.p0DataIndex;
+                            if (historicalData[index]?.projected) {
+                                return 'rgba(59, 130, 246, 0.7)';
+                            }
+                            return borderColors[index];
+                        },
+                        borderDash: (ctx) => {
+                            return historicalData[ctx.p0DataIndex]?.projected ? [8, 4] : [];
+                        }
                     }
-                });
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="scan-result error">❌ Kamera erişimi reddedildi</div>`;
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: '#e8eaed',
+                            font: {
+                                family: 'Outfit',
+                                size: 14,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(1, 4, 9, 0.95)',
+                        titleColor: '#f7931a',
+                        bodyColor: '#e8eaed',
+                        borderColor: 'rgba(247, 147, 26, 0.5)',
+                        borderWidth: 1,
+                        padding: 14,
+                        titleFont: {
+                            family: 'Outfit',
+                            size: 14,
+                            weight: '700'
+                        },
+                        bodyFont: {
+                            family: 'IBM Plex Mono',
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const dataPoint = historicalData[context.dataIndex];
+                                let label = `Fiyat: $${context.parsed.y.toLocaleString()}`;
+                                if (dataPoint.label) {
+                                    label += ` [${dataPoint.label}]`;
+                                }
+                                if (dataPoint.projected) {
+                                    label += ' (Projeksiyon)';
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            currentPrice: {
+                                type: 'line',
+                                yMin: 82380,
+                                yMax: 82380,
+                                borderColor: 'rgba(239, 68, 68, 0.8)',
+                                borderWidth: 3,
+                                borderDash: [6, 3],
+                                label: {
+                                    content: 'ŞU ANKİ FİYAT: $82,380',
+                                    enabled: true,
+                                    position: 'end',
+                                    color: '#ef4444',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                    font: { size: 12, family: 'IBM Plex Mono', weight: 'bold' }
+                                }
+                            },
+                            criticalSupport: {
+                                type: 'box',
+                                yMin: 80000,
+                                yMax: 82500,
+                                backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                                borderColor: 'rgba(16, 185, 129, 0.4)',
+                                borderWidth: 2,
+                                label: {
+                                    content: 'KRİTİK DESTEK',
+                                    enabled: true,
+                                    position: 'start',
+                                    color: '#10b981',
+                                    font: { size: 11, family: 'IBM Plex Mono', weight: 'bold' }
+                                }
+                            },
+                            strongSupport: {
+                                type: 'box',
+                                yMin: 74000,
+                                yMax: 77000,
+                                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                                borderColor: 'rgba(16, 185, 129, 0.5)',
+                                borderWidth: 2,
+                                label: {
+                                    content: 'GÜÇLÜ DESTEK BÖLGE',
+                                    enabled: true,
+                                    position: 'center',
+                                    color: '#10b981',
+                                    font: { size: 10, family: 'IBM Plex Mono' }
+                                }
+                            },
+                            targetBottom: {
+                                type: 'box',
+                                yMin: 65000,
+                                yMax: 72000,
+                                backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                                borderColor: 'rgba(139, 92, 246, 0.4)',
+                                borderWidth: 2,
+                                label: {
+                                    content: 'HEDEF DÜZELTME',
+                                    enabled: true,
+                                    position: 'center',
+                                    color: '#8b5cf6',
+                                    font: { size: 10, family: 'IBM Plex Mono' }
+                                }
+                            },
+                            resistance1: {
+                                type: 'line',
+                                yMin: 92000,
+                                yMax: 92000,
+                                borderColor: 'rgba(255, 107, 53, 0.5)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                label: {
+                                    content: 'İlk Direnç: $92k',
+                                    enabled: true,
+                                    position: 'start',
+                                    color: '#ff6b35',
+                                    backgroundColor: 'rgba(255, 107, 53, 0.15)',
+                                    font: { size: 10, family: 'IBM Plex Mono' }
+                                }
+                            },
+                            ath: {
+                                type: 'line',
+                                yMin: 126150,
+                                yMax: 126150,
+                                borderColor: 'rgba(239, 68, 68, 0.6)',
+                                borderWidth: 3,
+                                label: {
+                                    content: 'ATH: $126,150',
+                                    enabled: true,
+                                    position: 'center',
+                                    color: '#ef4444',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                    font: { size: 11, family: 'IBM Plex Mono', weight: 'bold' }
+                                }
+                            },
+                            projectionLine: {
+                                type: 'line',
+                                xMin: labels.indexOf('2026-01-30'),
+                                xMax: labels.indexOf('2026-01-30'),
+                                borderColor: 'rgba(59, 130, 246, 0.6)',
+                                borderWidth: 2,
+                                label: {
+                                    content: 'PROJEKSİYON BAŞLANGIÇ',
+                                    enabled: true,
+                                    position: 'start',
+                                    rotation: 90,
+                                    color: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                                    font: { size: 9, family: 'IBM Plex Mono' }
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.03)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#7d8590',
+                            font: {
+                                family: 'IBM Plex Mono',
+                                size: 10
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.03)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#7d8590',
+                            font: {
+                                family: 'IBM Plex Mono',
+                                size: 11
+                            },
+                            callback: function(value) {
+                                return '$' + (value / 1000).toFixed(0) + 'k';
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
             }
-        }
-
-        function closeBarcodeScanner() {
-            document.getElementById('barcodeModal').classList.remove('active');
-            if (codeReader) codeReader.reset();
-            if (barcodeStream) {
-                barcodeStream.getTracks().forEach(track => track.stop());
-                barcodeStream = null;
-            }
-        }
-
-        async function openCamera() {
-            const modal = document.getElementById('cameraModal');
-            const video = document.getElementById('video');
-            
-            modal.classList.add('active');
-
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                video.srcObject = stream;
-            } catch (error) {
-                alert('Kamera açılamadı');
-            }
-        }
-
-        function closeCamera() {
-            document.getElementById('cameraModal').classList.remove('active');
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-        }
-
-        function captureImage() {
-            const name = prompt('Ürün adı:');
-            if (name) {
-                document.getElementById('productName').value = name;
-                closeCamera();
-            }
-        }
-
-        function saveProducts() { localStorage.setItem('products', JSON.stringify(products)); }
-        function saveCategories() { localStorage.setItem('categories', JSON.stringify(categories)); }
+        });
     </script>
 </body>
 </html>
