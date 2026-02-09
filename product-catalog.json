@@ -1,0 +1,184 @@
+{
+  "products": [
+    {
+      "barcode": "8693702005439",
+      "name": "Süt 1L - Doypack",
+      "category": "Gıda",
+      "brand": "Eker",
+      "expiryDays": 15,
+      "locations": ["Depo A", "Depo B", "Mağaza 1"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702005446",
+      "name": "Ekmek Tam Buğday 500g",
+      "category": "Gıda",
+      "brand": "Sütaş",
+      "expiryDays": 3,
+      "locations": ["Mağaza 1", "Mağaza 2"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702156484",
+      "name": "Yoğurt 500g - Çilekli",
+      "category": "Gıda",
+      "brand": "Eker",
+      "expiryDays": 10,
+      "locations": ["Depo B", "Mağaza 1"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702156491",
+      "name": "Peynir Beyaz 500g",
+      "category": "Gıda",
+      "brand": "Sütaş",
+      "expiryDays": 20,
+      "locations": ["Depo A", "Mağaza 2"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702156552",
+      "name": "Zeytin Siyah 500g",
+      "category": "Gıda",
+      "brand": "Tarım",
+      "expiryDays": 365,
+      "locations": ["Depo A", "Depo B"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702156569",
+      "name": "Domates Salça 500g",
+      "category": "Gıda",
+      "brand": "Tarım",
+      "expiryDays": 365,
+      "locations": ["Depo A", "Depo B", "Saha"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003068",
+      "name": "Makarna Burgu 500g",
+      "category": "Gıda",
+      "brand": "Altın",
+      "expiryDays": 730,
+      "locations": ["Depo A", "Depo B"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003075",
+      "name": "Pirinç Baldo 1kg",
+      "category": "Gıda",
+      "brand": "Tarım",
+      "expiryDays": 730,
+      "locations": ["Depo B", "Saha"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003082",
+      "name": "Un Tam Buğday 1kg",
+      "category": "Gıda",
+      "brand": "Tarım",
+      "expiryDays": 365,
+      "locations": ["Depo A", "Depo B"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702156635",
+      "name": "Şeker Küp 500g",
+      "category": "Gıda",
+      "brand": "Domoli",
+      "expiryDays": 1095,
+      "locations": ["Depo A", "Depo B", "Mağaza 1"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003099",
+      "name": "Çay Siyah 500g",
+      "category": "İçecek",
+      "brand": "Rize",
+      "expiryDays": 730,
+      "locations": ["Depo A", "Mağaza 1"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003106",
+      "name": "Kahve Türk 500g",
+      "category": "İçecek",
+      "brand": "Kurukahveci",
+      "expiryDays": 365,
+      "locations": ["Depo B", "Mağaza 2"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003113",
+      "name": "Su 5L - Içilir",
+      "category": "İçecek",
+      "brand": "Pınar",
+      "expiryDays": 365,
+      "locations": ["Depo A", "Depo B", "Saha"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003120",
+      "name": "Kola 1L",
+      "category": "İçecek",
+      "brand": "Coca-Cola",
+      "expiryDays": 365,
+      "locations": ["Mağaza 1", "Mağaza 2"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003137",
+      "name": "Ayran 1L",
+      "category": "İçecek",
+      "brand": "Eker",
+      "expiryDays": 15,
+      "locations": ["Mağaza 1", "Mağaza 2", "Saha"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003144",
+      "name": "Deterjan Sıvı 2L",
+      "category": "Temizlik",
+      "brand": "Ariel",
+      "expiryDays": 730,
+      "locations": ["Depo A", "Depo B"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003151",
+      "name": "Şampuan 500ml",
+      "category": "Kozmetik",
+      "brand": "Clear",
+      "expiryDays": 365,
+      "locations": ["Mağaza 1", "Mağaza 2"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003168",
+      "name": "Sabun Kalıp 100g",
+      "category": "Temizlik",
+      "brand": "Duru",
+      "expiryDays": 730,
+      "locations": ["Depo A", "Mağaza 1"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003175",
+      "name": "Peçete 100lü",
+      "category": "Temizlik",
+      "brand": "Tempo",
+      "expiryDays": 365,
+      "locations": ["Depo B", "Saha"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    },
+    {
+      "barcode": "8693702003182",
+      "name": "Tuvalet Kağıdı 12 Rulo",
+      "category": "Temizlik",
+      "brand": "Selpak",
+      "expiryDays": 365,
+      "locations": ["Depo A", "Depo B"],
+      "lastUpdate": "2026-02-09T00:00:00Z"
+    }
+  ]
+}

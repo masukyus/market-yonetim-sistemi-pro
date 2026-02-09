@@ -48,6 +48,58 @@
         console.log('[APP] Multi-User Market Yönetim Sistemi başlatılıyor...');
 
         // ============================================
+        // PRODUCT CATALOG SYSTEM
+        // ============================================
+
+        class ProductCatalog {
+            constructor() {
+                this.products = [];
+                this.loaded = false;
+                this.loadCatalog();
+            }
+
+            async loadCatalog() {
+                try {
+                    const response = await fetch('./product-catalog.json');
+                    if (!response.ok) throw new Error('Katalog yüklenemedi');
+                    const data = await response.json();
+                    this.products = data.products || [];
+                    this.loaded = true;
+                    console.log('[CATALOG] Katalog yüklendi:', this.products.length, 'ürün');
+                } catch (error) {
+                    console.error('[CATALOG] Yükleme hatası:', error);
+                    this.products = [];
+                    this.loaded = false;
+                }
+            }
+
+            findByBarcode(barcode) {
+                if (!this.loaded) {
+                    console.warn('[CATALOG] Katalog henüz yüklenmedi');
+                    return null;
+                }
+                return this.products.find(p => p.barcode === barcode);
+            }
+
+            getDefaultLocation(barcode) {
+                const product = this.findByBarcode(barcode);
+                return product?.locations?.[0] || 'Depo A';
+            }
+
+            getDefaultExpiry(barcode) {
+                const product = this.findByBarcode(barcode);
+                if (product?.expiryDays) {
+                    const date = new Date();
+                    date.setDate(date.getDate() + product.expiryDays);
+                    return date.toISOString().split('T')[0];
+                }
+                return '';
+            }
+        }
+
+        const productCatalog = new ProductCatalog();
+
+        // ============================================
         // ADVANCED DATA MANAGEMENT SYSTEM
         // ============================================
 
@@ -266,6 +318,14 @@
         }
 
         const userSystem = new UserSystem();
+        const productCatalog = new ProductCatalog();
+
+        // Katalog yüklendiğini kontrol et (debug için)
+        productCatalog.loadCatalog().then(() => {
+            console.log('[INIT] Ürün kataloğu başarıyla yüklendi');
+        }).catch(err => {
+            console.error('[INIT] Katalog yükleme hatası:', err);
+        });
 
         // ============================================
         // UI RENDERING
@@ -450,17 +510,59 @@
                     </div>
 
                     <!-- Add Product Modal -->
-                    <div id="productModal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+                    <div id="productModal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl my-8">
                             <h2 class="text-2xl font-bold text-gray-800 mb-4">📦 Ürün Ekle</h2>
+                            
+                            <!-- Barcode Scanner Section -->
+                            <div id="scannerSection" class="mb-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                                <video id="scannerVideo" style="display:none; width:100%; border-radius:8px; margin-bottom:10px;" autoplay="true"></video>
+                                <button onclick="startBarcodeScanner()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2">
+                                    📷 Kamerayı Aç - Barkodu Tara
+                                </button>
+                                <button id="stopScannerBtn" style="display:none;" onclick="stopBarcodeScanner()" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-bold mt-2">
+                                    ✕ Kamerayi Kapat
+                                </button>
+                                <p class="text-xs text-gray-600 mt-2 text-center">veya barkodu manuel olarak yazın :</p>
+                            </div>
+
+                            <!-- Product Form -->
                             <div class="space-y-3">
-                                <input id="productName" type="text" placeholder="Ürün Adı" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none">
-                                <input id="productBarcode" type="text" placeholder="Barkod" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none">
-                                <input id="productLocation" type="text" placeholder="Lokasyon" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none">
-                                <input id="productExpiry" type="date" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none">
-                                <div class="flex gap-3">
-                                    <button onclick="document.getElementById('productModal').style.display='none'" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-bold">İptal</button>
-                                    <button onclick="addNewProduct()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-bold">Kaydet</button>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Barkod Numarası *</label>
+                                    <input id="productBarcode" type="text" placeholder="8693702005439" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none font-mono text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ürün Adı *</label>
+                                    <input id="productName" type="text" placeholder="Ürün Adınız" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Lokasyon *</label>
+                                    <select id="productLocation" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm">
+                                        <option value="Depo A">Depo A</option>
+                                        <option value="Depo B">Depo B</option>
+                                        <option value="Mağaza 1">Mağaza 1</option>
+                                        <option value="Mağaza 2">Mağaza 2</option>
+                                        <option value="Saha">Saha</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Son Kullanma Tarihi *</label>
+                                    <input id="productExpiry" type="date" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm">
+                                </div>
+
+                                <div id="catalogInfo" style="display:none;" class="p-3 bg-green-50 border-l-4 border-green-500 rounded text-sm">
+                                    <p class="text-green-800"><strong>✅ Katalogdan bulundu!</strong></p>
+                                    <p id="catalogInfoText" class="text-green-700 text-xs mt-1"></p>
+                                </div>
+
+                                <div class="flex gap-3 pt-2">
+                                    <button onclick="document.getElementById('productModal').style.display='none'; stopBarcodeScanner();" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-300">
+                                        İptal
+                                    </button>
+                                    <button onclick="addNewProduct()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-bold hover:shadow-lg">
+                                        ✅ Kaydet
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -662,7 +764,192 @@
         }
 
         function showAddProductModal() {
-            document.getElementById('productModal').style.display = 'flex';
+            // Modal'ı göster
+            const modal = document.getElementById('productModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+            
+            // Form alanlarını sıfırla
+            document.getElementById('productBarcode').value = '';
+            document.getElementById('productName').value = '';
+            document.getElementById('productLocation').value = 'Depo A';
+            document.getElementById('productExpiry').value = '';
+            
+            // Katalog bilgisi panelini gizle
+            const catalogInfo = document.getElementById('catalogInfo');
+            if (catalogInfo) {
+                catalogInfo.style.display = 'none';
+            }
+
+            // Scanning'i durdur (eğer hala aktifse)
+            if (scanningActive) {
+                stopBarcodeScanner();
+            }
+            
+            // Katalog durumunu kontrol et
+            if (!productCatalog.loaded) {
+                console.warn('[MODAL] Katalog hala yükleniyor, yükleme sabirsızca tekrar başlat');
+                productCatalog.loadCatalog().catch(err => {
+                    console.error('[MODAL] Katalog yükleme hatası:', err);
+                });
+            }
+        }
+
+        let codeReader = null;
+        let scanningActive = false;
+
+        async function startBarcodeScanner() {
+            try {
+                const videoElement = document.getElementById('scannerVideo');
+                if (!videoElement) {
+                    showToast('Video elementi bulunamadı!', 'error');
+                    return;
+                }
+
+                // ZXing kütüphanesinin yüklünüp yüklenmediğini kontrol et
+                if (typeof ZXing === 'undefined') {
+                    showToast('ZXing kütüphanesi henüz yüklenmedi!', 'error');
+                    return;
+                }
+
+                // Kamera erişimi isteyin
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+
+                videoElement.style.display = 'block';
+                videoElement.srcObject = stream;
+                
+                // Stop button'ı göster
+                const stopBtn = document.getElementById('stopScannerBtn');
+                if (stopBtn) stopBtn.style.display = 'block';
+
+                // ZXing reader'ını initialize et
+                codeReader = new ZXing.BrowserMultiFormatReader();
+                scanningActive = true;
+
+                // Decoding işlemini başlat (promise tabanlı)
+                const decodePromise = codeReader.decodeFromVideoElement(videoElement);
+                
+                decodePromise.then((result) => {
+                    if (result && scanningActive) {
+                        const barcode = result.text || result.getText?.();
+                        if (barcode) {
+                            handleBarcodeScanned(barcode);
+                        }
+                    }
+                }).catch((error) => {
+                    // Scanning sırasında hata bekleniyor, sessiz devam et
+                    console.debug('[SCAN] Scanning:', error?.message);
+                });
+
+                showToast('📷 Kamera açıldı - Barkodu kameraya göster', 'success');
+            } catch (error) {
+                console.error('[SCAN] Kamera hatası:', error);
+                if (error.name === 'NotAllowedError') {
+                    showToast('❌ Kamera erişimi reddedildi!', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    showToast('❌ Kamera bulunamadı!', 'error');
+                } else {
+                    showToast('❌ Kamera açılamadı: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function stopBarcodeScanner() {
+            scanningActive = false;
+            
+            if (codeReader) {
+                try {
+                    codeReader.reset();
+                } catch (e) {
+                    console.debug('[SCAN] Reset hatası:', e);
+                }
+                codeReader = null;
+            }
+
+            const videoElement = document.getElementById('scannerVideo');
+            if (videoElement && videoElement.srcObject) {
+                videoElement.srcObject.getTracks().forEach(track => {
+                    try {
+                        track.stop();
+                    } catch (e) {
+                        console.debug('[SCAN] Track stop hatası:', e);
+                    }
+                });
+                videoElement.srcObject = null;
+                videoElement.style.display = 'none';
+            }
+
+            // Button durumlarını güncelle
+            const stopBtn = document.getElementById('stopScannerBtn');
+            if (stopBtn) stopBtn.style.display = 'none';
+        }
+
+        function handleBarcodeScanned(barcode) {
+            console.log('[SCAN] Barkod okundu:', barcode);
+            
+            if (!barcode || barcode.trim() === '') {
+                showToast('⚠️ Geçersiz barkod!', 'warning');
+                return;
+            }
+
+            // Katalogda ara (wait for it to load if needed)
+            const catalogProduct = productCatalog.findByBarcode(barcode);
+            
+            // Barkod alanını doldur
+            const productBarcodeField = document.getElementById('productBarcode');
+            if (productBarcodeField) {
+                productBarcodeField.value = barcode;
+            }
+
+            const catalogInfo = document.getElementById('catalogInfo');
+            
+            if (catalogProduct) {
+                // Katalogda bulundu - bilgileri otomatik doldur
+                console.log('[SCAN] Katalogda bulundu:', catalogProduct.name);
+                
+                const nameField = document.getElementById('productName');
+                const locationField = document.getElementById('productLocation');
+                const expiryField = document.getElementById('productExpiry');
+                
+                if (nameField) nameField.value = catalogProduct.name;
+                if (locationField) locationField.value = catalogProduct.locations?.[0] || 'Depo A';
+                if (expiryField) expiryField.value = productCatalog.getDefaultExpiry(barcode) || '';
+                
+                // Katalog bilgisini göster
+                const catalogInfoText = document.getElementById('catalogInfoText');
+                if (catalogInfoText) {
+                    catalogInfoText.textContent = 
+                        `✅ ${catalogProduct.name} - ${catalogProduct.brand} - Geçerlilik: ${catalogProduct.expiryDays} gün`;
+                }
+                if (catalogInfo) {
+                    catalogInfo.style.display = 'block';
+                }
+                
+                showToast(`✅ Ürün bulundu: ${catalogProduct.name}`, 'success');
+            } else {
+                // Katalogda yok - manuel girişe hazır
+                console.log('[SCAN] Barkod katalogda bulunamadı');
+                
+                const nameField = document.getElementById('productName');
+                const locationField = document.getElementById('productLocation');
+                const expiryField = document.getElementById('productExpiry');
+                
+                if (nameField) nameField.value = '';
+                if (locationField) locationField.value = 'Depo A';
+                if (expiryField) expiryField.value = '';
+                
+                if (catalogInfo) {
+                    catalogInfo.style.display = 'none';
+                }
+                
+                showToast('⚠️ Barkod katalogda bulunamadı - manuel giriş yapın', 'warning');
+            }
+            
+            // Scanning'i durdur
+            stopBarcodeScanner();
         }
 
         function addNewProduct() {
@@ -677,16 +964,29 @@
             }
 
             const status = userSystem.calculateStatus(expiryDate);
-            const product = { name, barcode, location, expiryDate, ...status };
+            const catalogProduct = productCatalog.findByBarcode(barcode);
+            
+            const product = { 
+                name, 
+                barcode, 
+                location, 
+                expiryDate, 
+                ...status,
+                isFromCatalog: !!catalogProduct,
+                catalogReference: catalogProduct?.name || null
+            };
 
             userSystem.addProduct(userSystem.currentUser.username, product);
-            showToast('Ürün başarıyla eklendi!', 'success');
+            showToast('✅ Ürün başarıyla eklendi!', 'success');
             
+            // Modal kapat ve form temizle
             document.getElementById('productModal').style.display = 'none';
+            stopBarcodeScanner();
             document.getElementById('productName').value = '';
             document.getElementById('productBarcode').value = '';
-            document.getElementById('productLocation').value = '';
+            document.getElementById('productLocation').value = 'Depo A';
             document.getElementById('productExpiry').value = '';
+            document.getElementById('catalogInfo').style.display = 'none';
             
             render();
         }
