@@ -55,13 +55,17 @@
             constructor() {
                 this.products = [];
                 this.loaded = false;
-                this.loadCatalog();
             }
 
             async loadCatalog() {
                 try {
-                    const response = await fetch('./product-catalog.json');
-                    if (!response.ok) throw new Error('Katalog yüklenemedi');
+                    // GitHub Pages'te çalışması için absolute path kullan
+                    const baseUrl = window.location.origin + '/market-yonetim-sistemi-pro';
+                    const url = baseUrl + '/product-catalog.json';
+                    console.log('[CATALOG] Yükleniyor:', url);
+                    
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     const data = await response.json();
                     this.products = data.products || [];
                     this.loaded = true;
@@ -320,12 +324,15 @@
         const userSystem = new UserSystem();
         const productCatalog = new ProductCatalog();
 
-        // Katalog yüklendiğini kontrol et (debug için)
-        productCatalog.loadCatalog().then(() => {
-            console.log('[INIT] Ürün kataloğu başarıyla yüklendi');
-        }).catch(err => {
-            console.error('[INIT] Katalog yükleme hatası:', err);
-        });
+        // Katalog yüklenmesini başlat
+        (async () => {
+            try {
+                await productCatalog.loadCatalog();
+                console.log('[INIT] Ürün kataloğu başarıyla yüklendi, ' + productCatalog.products.length + ' ürün');
+            } catch (err) {
+                console.error('[INIT] Katalog yükleme hatası:', err);
+            }
+        })();
 
         // ============================================
         // UI RENDERING
