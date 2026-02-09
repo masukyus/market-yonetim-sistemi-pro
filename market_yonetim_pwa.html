@@ -149,9 +149,6 @@
                     lastScanDate: null
                 };
                 
-                // Products
-                this.products = this.loadFromStorage('products') || this.generateSampleProducts();
-                
                 // Settings
                 this.currentView = 'dashboard';
                 this.filterStatus = 'all';
@@ -170,6 +167,9 @@
                 // Constants
                 this.locations = ['Depo A', 'Depo B', 'Mağaza 1', 'Mağaza 2', 'Saha'];
                 this.categories = ['Gıda', 'İçecek', 'Temizlik', 'Kozmetik', 'Diğer'];
+
+                // Products
+                this.products = this.loadFromStorage('products') || this.generateSampleProducts();
                 
                 // Check daily reset
                 this.checkDailyReset();
