@@ -1,6 +1,6 @@
 /**
  * ============================================
- * MARKET STOK YÖNETİMİ - SERVICE WORKER
+ * MARKET STOK YÖNETIMI - SERVICE WORKER
  * ============================================
  * 
  * Offline-First PWA Architecture
@@ -11,7 +11,7 @@
  */
 
 // CONFIGURATION
-const CACHE_VERSION = 'market-stok-v1.0.2';
+const CACHE_VERSION = 'market-stok-v1.0.3';
 const CACHE_NAME = `${CACHE_VERSION}`;
 
 const STATIC_CACHE = `${CACHE_NAME}-static`;
@@ -21,7 +21,7 @@ const IMAGE_CACHE = `${CACHE_NAME}-images`;
 const STATIC_ASSETS = [
     './',
     './index.html',
-    './manifest.json',
+    './manifest-game.json',
     './icons/icon-192.svg',
     './icons/icon-512.svg',
     './icons/badge-72.svg',
@@ -213,25 +213,54 @@ async function syncProducts() {
 // PUSH NOTIFICATIONS
 self.addEventListener('push', (event) => {
     console.log('[SW] Push notification received');
-    
+
+    let payload = {};
+    try {
+        payload = event.data ? event.data.json() : {};
+    } catch (err) {
+        payload = { body: event.data ? event.data.text() : 'Yeni bildirim' };
+    }
+
+    const title = payload.title || 'Market Stok Yönetimi';
     const options = {
-        body: event.data ? event.data.text() : 'Yeni bildirim',
-        icon: './icons/icon-192.svg',
-        badge: './icons/badge-72.svg',
-        vibrate: [200, 100, 200]
+        body: payload.body || 'Yeni bildirim',
+        icon: payload.icon || './icons/icon-192.svg',
+        badge: payload.badge || './icons/badge-72.svg',
+        vibrate: [200, 100, 200],
+        tag: payload.tag || 'general',
+        data: {
+            url: payload.url || './',
+            mode: payload.mode || null
+        },
+        actions: [
+            { action: 'open', title: 'Uygulamayı Aç' },
+            { action: 'dismiss', title: 'Kapat' }
+        ]
     };
-    
-    event.waitUntil(
-        self.registration.showNotification('Market Stok Yönetimi', options)
-    );
+
+    event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
     console.log('[SW] Notification clicked:', event.action);
     event.notification.close();
-    event.waitUntil(clients.openWindow('./'));
-});
+    if (event.action === 'dismiss') {
+        return;
+    }
 
+    const targetUrl = (event.notification && event.notification.data && event.notification.data.url) || './';
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if ('focus' in client) {
+                    client.navigate(targetUrl);
+                    return client.focus();
+                }
+            }
+            return clients.openWindow(targetUrl);
+        })
+    );
+});
 // MESSAGE HANDLER
 self.addEventListener('message', (event) => {
     console.log('[SW] Message received:', event.data);
@@ -255,3 +284,6 @@ self.addEventListener('unhandledrejection', (event) => {
 });
 
 console.log('[SW] Service Worker loaded:', CACHE_VERSION);
+
+
+
